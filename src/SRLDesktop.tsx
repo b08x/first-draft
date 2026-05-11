@@ -113,17 +113,22 @@ interface WinProps {
   pos: { x: number; y: number }; zIdx: number;
   onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void;
   onFocus: () => void;
+  onMinimize?: () => void;
+  onClose?: () => void;
   children: React.ReactNode;
   badge?: string;
 }
-function Win({ title, bg, w, pos, zIdx, onTitleDown, onFocus, children, badge }: WinProps) {
+function Win({ title, bg, w, pos, zIdx, onTitleDown, onFocus, onMinimize, onClose, children, badge }: WinProps) {
   return (
     <div onMouseDown={onFocus} style={{ position:'absolute',left:pos.x,top:pos.y,width:w,zIndex:zIdx,border:`1px solid ${BAR}`,boxShadow:'2px 2px 0 rgba(0,0,0,0.5)' }}>
       <div onMouseDown={onTitleDown} style={{ background:BAR,padding:'3px 8px',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'move',userSelect:'none',borderBottom:'1px solid #6A0E0E' }}>
         <span style={{ fontFamily:F,fontSize:10,color:'#fff',letterSpacing:1.5,fontWeight:700 }}>{title}</span>
         <div style={{ display:'flex',alignItems:'center',gap:10 }}>
           {badge && <span style={{ fontFamily:F,fontSize:9,color:GOLD,letterSpacing:1 }}>{badge}</span>}
-          <span style={{ fontFamily:F,fontSize:10,color:'rgba(255,255,255,0.4)',letterSpacing:2 }}>□ □ ×</span>
+          <div style={{ display:'flex',gap:8,color:'rgba(255,255,255,0.4)',fontSize:11,fontWeight:700,userSelect:'none' }}>
+            <span style={{ cursor:onMinimize ? 'pointer' : 'default' }} onClick={(e) => { e.stopPropagation(); onMinimize?.(); }}>_</span>
+            <span style={{ cursor:onClose ? 'pointer' : 'default' }} onClick={(e) => { e.stopPropagation(); onClose?.(); }}>×</span>
+          </div>
         </div>
       </div>
       <div style={{ background:bg,overflow:'hidden' }}>{children}</div>
@@ -138,15 +143,17 @@ interface ProviderCfgProps {
   pos: { x: number; y: number }; zIdx: number;
   onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void;
   onFocus: () => void;
+  onMinimize?: () => void;
+  onClose?: () => void;
 }
-function ProviderCfg({ pos, zIdx, onTitleDown, onFocus }: ProviderCfgProps) {
+function ProviderCfg({ pos, zIdx, onTitleDown, onFocus, onMinimize, onClose }: ProviderCfgProps) {
   const { providerId, modelId, apiKeys, setProvider, setModel, setApiKey } = useSettings();
   const p   = providers[providerId];
   const key = apiKeys[providerId] ?? '';
   const safe = p.supportsDirectBrowser;
 
   return (
-    <Win title="PROVIDER.CFG" bg={CTRL} w={290} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus}>
+    <Win title="PROVIDER.CFG" bg={CTRL} w={290} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
       <div style={{ fontFamily:F }}>
         {!safe && (
           <div style={{ padding:'6px 12px',borderBottom:`1px solid #4A1A0A`,background:'#1E0A04',display:'flex',gap:8,alignItems:'flex-start' }}>
@@ -209,17 +216,18 @@ function ProviderCfg({ pos, zIdx, onTitleDown, onFocus }: ProviderCfgProps) {
 interface PromptNoteProps {
   pos: { x: number; y: number }; zIdx: number;
   onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void; onFocus: () => void;
+  onMinimize?: () => void; onClose?: () => void;
   prompt: string; setPrompt: (v: string) => void;
   mode: Mode; setMode: (m: Mode) => void;
   scope: string; setScope: (s: string) => void;
   selectedKit: Kit | null;
   onGenerate: () => void; generating: boolean;
 }
-function PromptNote({ pos,zIdx,onTitleDown,onFocus,prompt,setPrompt,mode,setMode,scope,setScope,selectedKit,onGenerate,generating }: PromptNoteProps) {
+function PromptNote({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,prompt,setPrompt,mode,setMode,scope,setScope,selectedKit,onGenerate,generating }: PromptNoteProps) {
   const { providerId, modelId } = useSettings();
   const p = providers[providerId];
   return (
-    <Win title="PROMPT.NOTE" bg={CREAM} w={400} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus}>
+    <Win title="PROMPT.NOTE" bg={CREAM} w={400} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
       <div style={{ padding:'14px 16px 10px',fontFamily:F }}>
         <div style={{ display:'flex',gap:12,alignItems:'baseline',marginBottom:6 }}>
           <span style={{ fontSize:9,color:'#888880',letterSpacing:2 }}>NOTE</span>
@@ -274,13 +282,14 @@ function PromptNote({ pos,zIdx,onTitleDown,onFocus,prompt,setPrompt,mode,setMode
 interface KitSemProps {
   pos: { x: number; y: number }; zIdx: number;
   onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void; onFocus: () => void;
+  onMinimize?: () => void; onClose?: () => void;
   selectedKit: Kit | null; onSelectKit: (k: Kit) => void;
 }
-function KitSem({ pos,zIdx,onTitleDown,onFocus,selectedKit,onSelectKit }: KitSemProps) {
+function KitSem({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,selectedKit,onSelectKit }: KitSemProps) {
   const [q, setQ] = useState('');
   const filtered = q ? KITS.filter(k => k.name.toLowerCase().includes(q.toLowerCase()) || k.stack.some(s => s.toLowerCase().includes(q.toLowerCase()))) : KITS;
   return (
-    <Win title="CK ──SEM" bg={DARK} w={360} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus}>
+    <Win title="CK ──SEM" bg={DARK} w={360} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
       <div style={{ fontFamily:F }}>
         <div style={{ padding:'6px 10px',borderBottom:`1px solid ${BD}`,fontSize:10,color:DIM,letterSpacing:1 }}>ck ──sem · QUERY</div>
         <div style={{ padding:'6px 10px',borderBottom:`1px solid ${BD}`,display:'flex',gap:6 }}>
@@ -326,12 +335,13 @@ function KitSem({ pos,zIdx,onTitleDown,onFocus,selectedKit,onSelectKit }: KitSem
 interface ControllerProps {
   pos: { x: number; y: number }; zIdx: number;
   onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void; onFocus: () => void;
+  onMinimize?: () => void; onClose?: () => void;
   selectedField: string; setField: (f: string) => void;
   selectedStack: string[]; toggleStack: (s: string) => void;
 }
-function Controller({ pos,zIdx,onTitleDown,onFocus,selectedField,setField,selectedStack,toggleStack }: ControllerProps) {
+function Controller({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,selectedField,setField,selectedStack,toggleStack }: ControllerProps) {
   return (
-    <Win title="SRL.CONTROLLER" bg={CTRL} w={255} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus}>
+    <Win title="SRL.CONTROLLER" bg={CTRL} w={255} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
       <div style={{ fontFamily:F,padding:'6px 0' }}>
         <div style={{ padding:'0 12px 5px',borderBottom:`1px solid ${BD}` }}>
           <div style={{ fontSize:9,color:DIM,letterSpacing:2,marginBottom:5,paddingTop:2 }}>· FIELD</div>
@@ -366,14 +376,15 @@ function Controller({ pos,zIdx,onTitleDown,onFocus,selectedField,setField,select
 interface OutputWinProps {
   pos: { x: number; y: number }; zIdx: number;
   onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void; onFocus: () => void;
+  onMinimize?: () => void; onClose?: () => void;
   text: string; generating: boolean; mode: Mode; selectedKit: Kit | null;
 }
-function OutputWin({ pos,zIdx,onTitleDown,onFocus,text,generating,mode,selectedKit }: OutputWinProps) {
+function OutputWin({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,text,generating,mode,selectedKit }: OutputWinProps) {
   const { providerId, modelId } = useSettings();
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => { if (ref.current) ref.current.scrollTop = ref.current.scrollHeight; }, [text]);
   return (
-    <Win title="PRD.OUTPUT" bg={DARK} w={420} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus}>
+    <Win title="PRD.OUTPUT" bg={DARK} w={420} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
       <div style={{ fontFamily:F }}>
         <div style={{ padding:'5px 12px',borderBottom:`1px solid ${BD}`,display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(0,0,0,0.3)' }}>
           <div style={{ display:'flex',alignItems:'center',gap:8 }}>
@@ -402,10 +413,11 @@ function OutputWin({ pos,zIdx,onTitleDown,onFocus,text,generating,mode,selectedK
 interface FolderWinProps {
   pos: { x: number; y: number }; zIdx: number;
   onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void; onFocus: () => void;
+  onMinimize?: () => void; onClose?: () => void;
   sections: PRDSection[]; activeFile: PRDSection | null;
   onFileClick: (s: PRDSection) => void; onDownloadAll: () => void;
 }
-function FolderWin({ pos,zIdx,onTitleDown,onFocus,sections,activeFile,onFileClick,onDownloadAll }: FolderWinProps) {
+function FolderWin({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,sections,activeFile,onFileClick,onDownloadAll }: FolderWinProps) {
   const total = sections.reduce((s, f) => s + f.bytes, 0);
   const dlOne = (sec: PRDSection) => {
     const blob = new Blob([sec.body], { type:'text/markdown' });
@@ -414,7 +426,7 @@ function FolderWin({ pos,zIdx,onTitleDown,onFocus,sections,activeFile,onFileClic
     a.href = url; a.download = sec.filename; a.click(); URL.revokeObjectURL(url);
   };
   return (
-    <Win title="PRD.DIR" bg={DARK} w={330} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} badge={`${sections.length} FILES`}>
+    <Win title="PRD.DIR" bg={DARK} w={330} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose} badge={`${sections.length} FILES`}>
       <div style={{ fontFamily:F }}>
         <div style={{ padding:'4px 12px',borderBottom:`1px solid ${BD}`,display:'flex',gap:8,background:'rgba(0,0,0,0.3)' }}>
           <span style={{ fontSize:9,color:DIM,letterSpacing:2,flex:1 }}>NAME</span>
@@ -451,12 +463,13 @@ function FolderWin({ pos,zIdx,onTitleDown,onFocus,sections,activeFile,onFileClic
 interface FileViewProps {
   pos: { x: number; y: number }; zIdx: number;
   onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void; onFocus: () => void;
+  onMinimize?: () => void; onClose?: () => void;
   section: PRDSection | null;
 }
-function FileView({ pos,zIdx,onTitleDown,onFocus,section }: FileViewProps) {
+function FileView({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,section }: FileViewProps) {
   if (!section) return null;
   return (
-    <Win title={`FILE.VIEW · ${section.filename}`} bg={DARK} w={400} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus}>
+    <Win title={`FILE.VIEW · ${section.filename}`} bg={DARK} w={400} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
       <div style={{ fontFamily:F }}>
         <div style={{ padding:'4px 12px',borderBottom:`1px solid ${BD}`,display:'flex',gap:12,background:'rgba(0,0,0,0.3)' }}>
           <span style={{ fontSize:9,color:GOLD,letterSpacing:1 }}>{section.title}</span>
@@ -479,13 +492,14 @@ interface ChatMessage {
 interface PRDChatProps {
   pos: { x: number; y: number }; zIdx: number;
   onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void; onFocus: () => void;
+  onMinimize?: () => void; onClose?: () => void;
   messages: ChatMessage[];
   input: string; setInput: (v: string) => void;
   onSend: () => void; busy: boolean;
   sections: PRDSection[];
 }
 
-function PRDChat({ pos,zIdx,onTitleDown,onFocus,messages,input,setInput,onSend,busy,sections }: PRDChatProps) {
+function PRDChat({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,messages,input,setInput,onSend,busy,sections }: PRDChatProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -493,7 +507,7 @@ function PRDChat({ pos,zIdx,onTitleDown,onFocus,messages,input,setInput,onSend,b
 
   return (
     <Win title="PRD.CHAT" bg={DARK} w={420} pos={pos} zIdx={zIdx}
-      onTitleDown={onTitleDown} onFocus={onFocus}
+      onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}
       badge={sections.length ? `${sections.length} SECTIONS` : undefined}>
       <div style={{ fontFamily:F }}>
 
@@ -583,7 +597,7 @@ function PRDChat({ pos,zIdx,onTitleDown,onFocus,messages,input,setInput,onSend,b
 // ─────────────────────────────────────────────────────────────────────────────
 // MAIN DESKTOP
 // ─────────────────────────────────────────────────────────────────────────────
-interface WinState { x: number; y: number; z: number; }
+interface WinState { x: number; y: number; z: number; open: boolean; minimized: boolean; }
 
 export default function SRLDesktop() {
   const { providerId, modelId, apiKeys } = useSettings();
@@ -606,26 +620,42 @@ export default function SRLDesktop() {
   // ── Window positions + z ──────────────────────────────────────────────────
   const [wins, setWins] = useState<Record<string, WinState>>({
     // Column A — Config (x=14)
-    provider: { x:14,  y:6,  z:1 },   // PROVIDER.CFG  w=290
-    ctrl:     { x:14,  y:290,z:2 },   // SRL.CONTROLLER w=255
+    provider: { x:14,  y:6,  z:1, open: false, minimized: false },   // PROVIDER.CFG  w=290
+    ctrl:     { x:14,  y:290,z:2, open: false, minimized: false },   // SRL.CONTROLLER w=255
 
     // Column B — Input (x=318)
-    prompt:   { x:318, y:6,  z:3 },   // PROMPT.NOTE   w=400
-    kit:      { x:318, y:310,z:4 },   // CK ──SEM      w=360
+    prompt:   { x:318, y:6,  z:3, open: false, minimized: false },   // PROMPT.NOTE   w=400
+    kit:      { x:318, y:310,z:4, open: false, minimized: false },   // CK ──SEM      w=360
 
     // Column C — Output (x=730)
-    output:   { x:730, y:6,  z:5 },   // PRD.OUTPUT    w=420
-    folder:   { x:730, y:290,z:6 },   // PRD.DIR       w=330
-    chat:     { x:730, y:6,  z:7 },   // PRD.CHAT      w=420 (hidden until generation)
-    preview:  { x:200, y:80, z:8 },   // FILE.VIEW     w=400 (floats center on open)
+    output:   { x:730, y:6,  z:5, open: false, minimized: false },   // PRD.OUTPUT    w=420
+    folder:   { x:730, y:290,z:6, open: false, minimized: false },   // PRD.DIR       w=330
+    chat:     { x:730, y:6,  z:7, open: false, minimized: false },   // PRD.CHAT      w=420
+    preview:  { x:200, y:80, z:8, open: false, minimized: false },   // FILE.VIEW     w=400
   });
-  const maxZ = useRef(7);
+  const maxZ = useRef(8);
   const drag = useRef<{ id: string; ox: number; oy: number } | null>(null);
 
-  const [showOutput,  setShowOutput]  = useState(false);
-  const [showFolder,  setShowFolder]  = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
-  const [showChat,    setShowChat]    = useState(false);
+  const setWinState = useCallback((id: string, updates: Partial<WinState>) => {
+    setWins(prev => {
+      if (!prev[id]) return prev;
+      return { ...prev, [id]: { ...prev[id], ...updates } };
+    });
+  }, []);
+
+  const openWin = useCallback((id: string) => {
+    maxZ.current += 1;
+    setWinState(id, { open: true, minimized: false, z: maxZ.current });
+  }, [setWinState]);
+  const closeWin = useCallback((id: string) => setWinState(id, { open: false }), [setWinState]);
+  const minimizeWin = useCallback((id: string) => setWinState(id, { minimized: true }), [setWinState]);
+  const focusWin = useCallback((id: string) => {
+    setWins(prev => {
+      if (prev[id]?.minimized) return prev; // don't focus minimized directly, must restore
+      maxZ.current += 1;
+      return { ...prev, [id]: { ...prev[id], z: maxZ.current } };
+    });
+  }, []);
 
   // ── Generation state ──────────────────────────────────────────────────────
   const [prompt,        setPrompt]        = useState('');
@@ -645,15 +675,10 @@ export default function SRLDesktop() {
   const [colCTab,      setColCTab]      = useState<'output' | 'chat'>('output');
 
   // ── Drag handlers ─────────────────────────────────────────────────────────
-  const focusWin = useCallback((id: string) => {
-    maxZ.current++;
-    setWins(w => ({ ...w, [id]: { ...w[id], z: maxZ.current } }));
-  }, []);
-
   const onTitleDown = useCallback((id: string, e: RMouseEvent<HTMLDivElement>) => {
     e.preventDefault(); focusWin(id);
     setWins(w => { drag.current = { id, ox: e.clientX - w[id].x, oy: e.clientY - w[id].y }; return w; });
-  }, [focusWin]);
+  }, []);
 
   const onMouseMove = useCallback((e: RMouseEvent<HTMLDivElement>) => {
     if (!drag.current) return;
@@ -772,7 +797,7 @@ ${history}`;
   const generate = async () => {
     if (!prompt.trim()) return;
     setGenerating(true); setOutputText(''); setSections([]);
-    setShowOutput(true); setShowFolder(false); setShowPreview(false); setActiveFile(null);
+    openWin('output'); closeWin('folder'); closeWin('preview'); setActiveFile(null);
     focusWin('output');
 
     // Seed session meta
@@ -801,7 +826,7 @@ ${history}`;
       setGenerating(false);
       const parsed = parseSections(full);
       setSections(parsed);
-      setShowFolder(true);
+      openWin('folder');
       focusWin('folder');
 
       // Embed + store each section in session pglite
@@ -815,7 +840,7 @@ ${history}`;
           await storeSection(db, { session_id: sessionId, title: sec.title, body: sec.body, embedding });
         }
       }
-      setShowChat(true);
+      openWin('chat');
       setChatMessages([]);
       setColCTab('chat');
       focusWin('chat');
@@ -850,11 +875,21 @@ ${history}`;
     URL.revokeObjectURL(url);
   };
 
-  const openFile = (sec: PRDSection) => { setActiveFile(sec); setShowPreview(true); focusWin('preview'); };
+  const openFile = (sec: PRDSection) => { setActiveFile(sec); openWin('preview'); focusWin('preview'); };
 
   const now   = new Date();
   const clock = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   const p     = providers[providerId];
+
+  const DESKTOP_ICONS = [
+    { id: 'provider', label: 'PROVIDER.CFG', icon: '⎈' },
+    { id: 'ctrl', label: 'SRL.CONTROLLER', icon: '⌘' },
+    { id: 'prompt', label: 'PROMPT.NOTE', icon: '∆' },
+    { id: 'kit', label: 'CK ──SEM', icon: '◈' },
+    { id: 'output', label: 'PRD.OUTPUT', icon: '▤' },
+    { id: 'folder', label: 'PRD.DIR', icon: '◫' },
+    { id: 'chat', label: 'PRD.CHAT', icon: '💬' },
+  ];
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -904,25 +939,42 @@ ${history}`;
           backgroundImage:'repeating-linear-gradient(0deg,rgba(0,0,0,0.06) 0,rgba(0,0,0,0.06) 1px,transparent 1px,transparent 4px),repeating-linear-gradient(90deg,rgba(0,0,0,0.06) 0,rgba(0,0,0,0.06) 1px,transparent 1px,transparent 4px)',
           backgroundSize:'4px 4px' }}>
 
-        <PromptNote pos={wins.prompt} zIdx={wins.prompt.z} onTitleDown={e => onTitleDown('prompt', e)} onFocus={() => focusWin('prompt')}
-          prompt={prompt} setPrompt={setPrompt} mode={mode} setMode={setMode} scope={scope} setScope={setScope}
-          selectedKit={selectedKit} onGenerate={generate} generating={generating} />
+        <div style={{ position:'absolute', top: 20, left: 14, display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {DESKTOP_ICONS.map(i => (
+            <div key={i.id} onClick={() => openWin(i.id)} style={{ width: 60, textAlign: 'center', cursor: 'pointer' }}>
+              <div style={{ fontSize: 28, color: '#A0D0B0', opacity: 0.8, lineHeight: 1 }}>{i.icon}</div>
+              <div style={{ fontFamily: F, fontSize: 8, color: '#A0D0B0', letterSpacing: 1, marginTop: 4, textShadow: '1px 1px 0 rgba(0,0,0,0.6)' }}>{i.label}</div>
+            </div>
+          ))}
+        </div>
 
-        <KitSem pos={wins.kit} zIdx={wins.kit.z} onTitleDown={e => onTitleDown('kit', e)} onFocus={() => focusWin('kit')}
-          selectedKit={selectedKit} onSelectKit={selectKit} />
+        {wins.prompt.open && !wins.prompt.minimized && (
+          <PromptNote pos={wins.prompt} zIdx={wins.prompt.z} onTitleDown={e => onTitleDown('prompt', e)} onFocus={() => focusWin('prompt')} onMinimize={() => minimizeWin('prompt')} onClose={() => closeWin('prompt')}
+            prompt={prompt} setPrompt={setPrompt} mode={mode} setMode={setMode} scope={scope} setScope={setScope}
+            selectedKit={selectedKit} onGenerate={generate} generating={generating} />
+        )}
 
-        <Controller pos={wins.ctrl} zIdx={wins.ctrl.z} onTitleDown={e => onTitleDown('ctrl', e)} onFocus={() => focusWin('ctrl')}
-          selectedField={selectedField} setField={setSelectedField} selectedStack={selectedStack} toggleStack={toggleStack} />
+        {wins.kit.open && !wins.kit.minimized && (
+          <KitSem pos={wins.kit} zIdx={wins.kit.z} onTitleDown={e => onTitleDown('kit', e)} onFocus={() => focusWin('kit')} onMinimize={() => minimizeWin('kit')} onClose={() => closeWin('kit')}
+            selectedKit={selectedKit} onSelectKit={selectKit} />
+        )}
 
-        <ProviderCfg pos={wins.provider} zIdx={wins.provider.z} onTitleDown={e => onTitleDown('provider', e)} onFocus={() => focusWin('provider')} />
+        {wins.ctrl.open && !wins.ctrl.minimized && (
+          <Controller pos={wins.ctrl} zIdx={wins.ctrl.z} onTitleDown={e => onTitleDown('ctrl', e)} onFocus={() => focusWin('ctrl')} onMinimize={() => minimizeWin('ctrl')} onClose={() => closeWin('ctrl')}
+            selectedField={selectedField} setField={setSelectedField} selectedStack={selectedStack} toggleStack={toggleStack} />
+        )}
 
-        {(showOutput || showChat) && (
+        {wins.provider.open && !wins.provider.minimized && (
+          <ProviderCfg pos={wins.provider} zIdx={wins.provider.z} onTitleDown={e => onTitleDown('provider', e)} onFocus={() => focusWin('provider')} onMinimize={() => minimizeWin('provider')} onClose={() => closeWin('provider')} />
+        )}
+
+        {(wins.output.open && !wins.output.minimized) || (wins.chat.open && !wins.chat.minimized) ? (
           <div style={{
             position:'absolute', left: wins.output.x, top: wins.output.y - 22,
             zIndex: Math.max(wins.output.z, wins.chat.z) + 1,
             display:'flex', gap:0, fontFamily:F,
           }}>
-            {['output','chat'].map(tab => (
+            {['output','chat'].filter(tab => wins[tab].open && !wins[tab].minimized).map(tab => (
               <button key={tab} onClick={() => {
                 setColCTab(tab as 'output' | 'chat');
                 focusWin(tab === 'output' ? 'output' : 'chat');
@@ -935,18 +987,19 @@ ${history}`;
               }}>{tab === 'output' ? 'PRD.OUTPUT' : 'PRD.CHAT'}</button>
             ))}
           </div>
-        )}
+        ) : null}
 
-        {showOutput && (
-          <OutputWin pos={wins.output} zIdx={wins.output.z} onTitleDown={e => onTitleDown('output', e)} onFocus={() => focusWin('output')}
+        {wins.output.open && !wins.output.minimized && colCTab === 'output' && (
+          <OutputWin pos={wins.output} zIdx={wins.output.z} onTitleDown={e => onTitleDown('output', e)} onFocus={() => focusWin('output')} onMinimize={() => minimizeWin('output')} onClose={() => closeWin('output')}
             text={outputText} generating={generating} mode={mode} selectedKit={selectedKit} />
         )}
 
-        {showChat && sections.length > 0 && (
+        {wins.chat.open && !wins.chat.minimized && colCTab === 'chat' && sections.length > 0 && (
           <PRDChat
             pos={wins.chat} zIdx={wins.chat.z}
             onTitleDown={e => onTitleDown('chat', e)}
             onFocus={() => focusWin('chat')}
+            onMinimize={() => minimizeWin('chat')} onClose={() => closeWin('chat')}
             messages={chatMessages}
             input={chatInput} setInput={setChatInput}
             onSend={sendChatMessage} busy={chatBusy}
@@ -954,24 +1007,18 @@ ${history}`;
           />
         )}
 
-        {showFolder && sections.length > 0 && (
-          <FolderWin pos={wins.folder} zIdx={wins.folder.z} onTitleDown={e => onTitleDown('folder', e)} onFocus={() => focusWin('folder')}
+        {wins.folder.open && !wins.folder.minimized && sections.length > 0 && (
+          <FolderWin pos={wins.folder} zIdx={wins.folder.z} onTitleDown={e => onTitleDown('folder', e)} onFocus={() => focusWin('folder')} onMinimize={() => minimizeWin('folder')} onClose={() => closeWin('folder')}
             sections={sections} activeFile={activeFile} onFileClick={openFile} onDownloadAll={downloadZip} />
         )}
 
-        {showPreview && activeFile && (
-          <FileView pos={wins.preview} zIdx={wins.preview.z} onTitleDown={e => onTitleDown('preview', e)} onFocus={() => focusWin('preview')}
+        {wins.preview.open && !wins.preview.minimized && activeFile && (
+          <FileView pos={wins.preview} zIdx={wins.preview.z} onTitleDown={e => onTitleDown('preview', e)} onFocus={() => focusWin('preview')} onMinimize={() => minimizeWin('preview')} onClose={() => closeWin('preview')}
             section={activeFile} />
         )}
 
-        {showFolder && (
-          <div onClick={() => focusWin('folder')} style={{ position:'absolute',left:14,bottom:26,textAlign:'center',cursor:'pointer',padding:4 }}>
-            <div style={{ fontSize:26,color:GOLD,opacity:.8,lineHeight:1 }}>◫</div>
-            <div style={{ fontFamily:F,fontSize:8,color:GOLD,letterSpacing:1,marginTop:1 }}>PRD.DIR</div>
-            <div style={{ fontFamily:F,fontSize:8,color:DIM }}>{sections.length} files</div>
-          </div>
-        )}
-
+        {/* No bottom left PRD.DIR icon since it's in the side desktop panel */}
+        
         <div style={{ position:'absolute',right:14,bottom:26,fontFamily:F,fontSize:9,color:'rgba(255,255,255,0.07)',textAlign:'right',letterSpacing:1,lineHeight:1.6 }}>
           <div style={{ fontSize:20,marginBottom:2,opacity:.1 }}>◫</div>
           MEMORY.STACK
