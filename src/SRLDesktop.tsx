@@ -646,12 +646,29 @@ CONSTRAINTS: Ruby-native only. Prefer async/falcon. Prefer dspy.rb typed signatu
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div style={{ background:'#1A1A1A',userSelect:'none' }}>
+    <div style={{
+      background: '#1A1A1A',
+      userSelect: 'none',
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100vh',
+      overflow: 'hidden',
+    }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&display=swap');
         *{box-sizing:border-box;}
         ::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:#303040;}
         textarea::placeholder,input::placeholder{color:#505058;}
+        @media (max-width: 768px) {
+          /* Scale the desktop surface to fit narrow screens */
+          .srl-desktop-surface {
+            overflow-x: auto;
+          }
+          /* Prevent windows from rendering off-screen */
+          .srl-desktop-surface > div {
+            max-width: calc(100vw - 8px);
+          }
+        }
       `}</style>
 
       {/* menu bar */}
@@ -670,8 +687,8 @@ CONSTRAINTS: Ruby-native only. Prefer async/falcon. Prefer dspy.rb typed signatu
       </div>
 
       {/* desktop */}
-      <div onMouseMove={onMouseMove} onMouseUp={onMouseUp}
-        style={{ position:'relative',width:'100%',minWidth:720,height:680,background:DESK,overflow:'hidden',
+      <div className="srl-desktop-surface" onMouseMove={onMouseMove} onMouseUp={onMouseUp}
+        style={{ position:'relative',width:'100%',flex:1,background:DESK,overflow:'hidden',
           backgroundImage:'repeating-linear-gradient(0deg,rgba(0,0,0,0.06) 0,rgba(0,0,0,0.06) 1px,transparent 1px,transparent 4px),repeating-linear-gradient(90deg,rgba(0,0,0,0.06) 0,rgba(0,0,0,0.06) 1px,transparent 1px,transparent 4px)',
           backgroundSize:'4px 4px' }}>
 
