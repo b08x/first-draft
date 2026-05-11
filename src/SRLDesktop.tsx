@@ -174,38 +174,38 @@ function ProviderCfg({ pos, zIdx, onTitleDown, onFocus, onMinimize, onClose }: P
   const safe = p.supportsDirectBrowser;
 
   return (
-    <Win title="PROVIDER.CFG" bg={CTRL} w={290} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
+    <Win title="MODELS" bg={CTRL} w={290} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
       <div style={{ fontFamily:F }}>
         {!safe && (
           <div style={{ padding:'6px 12px',borderBottom:`1px solid #4A1A0A`,background:'#1E0A04',display:'flex',gap:8,alignItems:'flex-start' }}>
             <span style={{ color:WARN,fontSize:11,marginTop:1 }}>⚠</span>
             <span style={{ fontSize:9,color:'#C07060',lineHeight:1.5 }}>
-              {p.name} requires a proxy in production browsers.<br/>
-              <span style={{ color:DIM }}>Use OpenRouter for direct browser calls.</span>
+              {p.name} requires a server proxy in production.<br/>
+              <span style={{ color:DIM }}>Switch to OpenRouter to call directly from the browser.</span>
             </span>
           </div>
         )}
         {safe && (
           <div style={{ padding:'5px 12px',borderBottom:`1px solid #0A2A14`,background:'#061408',display:'flex',gap:6,alignItems:'center' }}>
             <span style={{ color:'#40C060',fontSize:10 }}>✓</span>
-            <span style={{ fontSize:9,color:'#40A050' }}>CORS-safe · direct browser calls enabled</span>
+            <span style={{ fontSize:9,color:'#40A050' }}>This provider works directly in the browser</span>
           </div>
         )}
         <div style={{ padding:'6px 0',borderBottom:`1px solid ${BD}` }}>
-          <div style={{ padding:'0 12px 4px',fontSize:9,color:DIM,letterSpacing:2 }}>· PROVIDER</div>
+          <div style={{ padding:'0 12px 4px',fontSize:9,color:DIM,letterSpacing:2 }}>Provider</div>
           {Object.values(providers).map((pr: any) => (
             <div key={pr.id} onClick={() => setProvider(pr.id)}
               style={{ padding:'4px 12px',cursor:'pointer',fontSize:11,display:'flex',alignItems:'center',gap:6,background:providerId===pr.id?'#1A3A68':'transparent',color:providerId===pr.id?'#70A8E0':TD,borderLeft:providerId===pr.id?'2px solid #3060A8':'2px solid transparent' }}>
               {providerId===pr.id && <span style={{ fontSize:9 }}>►</span>}
               <span style={{ flex:1 }}>{pr.name}</span>
               <span style={{ fontSize:9,color:pr.supportsDirectBrowser?'#40C060':'#804030',letterSpacing:1 }}>
-                {pr.supportsDirectBrowser?'DIRECT':'PROXY'}
+                {pr.supportsDirectBrowser?'Browser-safe':'Needs proxy'}
               </span>
             </div>
           ))}
         </div>
         <div style={{ padding:'6px 0',borderBottom:`1px solid ${BD}` }}>
-          <div style={{ padding:'0 12px 4px',fontSize:9,color:DIM,letterSpacing:2 }}>· MODEL</div>
+          <div style={{ padding:'0 12px 4px',fontSize:9,color:DIM,letterSpacing:2 }}>Model</div>
           {p.models.map(m => (
             <div key={m} onClick={() => setModel(m)}
               style={{ padding:'3px 12px',cursor:'pointer',fontSize:10,background:modelId===m?'#1A2848':'transparent',color:modelId===m?'#90B8E0':DIM,borderLeft:modelId===m?'2px solid #203860':'2px solid transparent',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>
@@ -214,16 +214,16 @@ function ProviderCfg({ pos, zIdx, onTitleDown, onFocus, onMinimize, onClose }: P
           ))}
         </div>
         <div style={{ padding:'8px 12px' }}>
-          <div style={{ fontSize:9,color:DIM,letterSpacing:2,marginBottom:5 }}>· API KEY</div>
+          <div style={{ fontSize:9,color:DIM,letterSpacing:2,marginBottom:5 }}>API Key</div>
           {providerId === 'ollama' ? (
-            <div style={{ fontSize:10,color:'#40A050',padding:'4px 0' }}>No key required — local inference</div>
+            <div style={{ fontSize:10,color:'#40A050',padding:'4px 0' }}>No API key needed for local Ollama</div>
           ) : (
             <input type="password" value={key} onChange={e => setApiKey(providerId, e.target.value)}
               placeholder={p.placeholder}
               style={{ width:'100%',background:'rgba(255,255,255,0.04)',border:`1px solid ${BD}`,fontFamily:F,fontSize:10,color:TD,padding:'5px 8px',outline:'none',boxSizing:'border-box' as CSSProperties['boxSizing'] }} />
           )}
           <div style={{ fontSize:9,color:DIM,marginTop:5 }}>
-            {p.note ?? 'Stored in sessionStorage — cleared on tab close.'}
+            {p.note ?? 'Key is stored for this session only and cleared when you close the tab.'}
           </div>
         </div>
       </div>
@@ -248,7 +248,7 @@ function PromptNote({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,prompt,set
   const { providerId, modelId } = useSettings();
   const p = providers[providerId];
   return (
-    <Win title="PROMPT.NOTE" bg={CREAM} w={400} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
+    <Win title="DESCRIBE" bg={CREAM} w={400} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
       <div style={{ padding:'14px 16px 10px',fontFamily:F }}>
         <div style={{ display:'flex',gap:12,alignItems:'baseline',marginBottom:6 }}>
           <span style={{ fontSize:9,color:'#888880',letterSpacing:2 }}>NOTE</span>
@@ -271,7 +271,7 @@ function PromptNote({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,prompt,set
           style={{ width:'100%',height:100,padding:'8px 10px',background:'rgba(0,0,0,0.04)',border:`1px solid ${BC}`,outline:'none',fontFamily:F,fontSize:12,color:TC,resize:'none',lineHeight:1.6,boxSizing:'border-box' as CSSProperties['boxSizing'] }} />
         {selectedKit && (
           <div style={{ marginTop:6,padding:'6px 10px',background:'rgba(0,0,0,0.06)',border:`1px solid ${BC}` }}>
-            <div style={{ fontSize:9,color:'#888',letterSpacing:2 }}>KIT·CONTEXT</div>
+            <div style={{ fontSize:9,color:'#888',letterSpacing:2 }}>Kit context</div>
             <div style={{ fontSize:11,color:'#554438',marginTop:2 }}>{selectedKit.name} · {selectedKit.stack.join(' · ')}</div>
           </div>
         )}
@@ -283,7 +283,7 @@ function PromptNote({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,prompt,set
           </div>
           <button onClick={onGenerate} disabled={generating || !prompt.trim()}
             style={{ fontFamily:F,fontSize:11,padding:'4px 14px',cursor:generating||!prompt.trim()?'not-allowed':'pointer',background:generating?'#1A1A14':BAR,color:'#fff',border:'none',letterSpacing:1,opacity:generating||!prompt.trim()?0.5:1 }}>
-            {generating ? 'GEN…' : '→ GEN'}
+            {generating ? 'Working…' : 'Generate'}
           </button>
         </div>
         <div style={{ display:'flex',gap:3,marginTop:6 }}>
@@ -310,9 +310,9 @@ function KitSem({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,selectedKit,on
   const [q, setQ] = useState('');
   const filtered = q ? KITS.filter(k => k.name.toLowerCase().includes(q.toLowerCase()) || k.stack.some(s => s.toLowerCase().includes(q.toLowerCase()))) : KITS;
   return (
-    <Win title="CK ──SEM" bg={DARK} w={360} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
+    <Win title="KIT SEARCH" bg={DARK} w={360} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
       <div style={{ fontFamily:F }}>
-        <div style={{ padding:'6px 10px',borderBottom:`1px solid ${BD}`,fontSize:10,color:DIM,letterSpacing:1 }}>ck ──sem · QUERY</div>
+        <div style={{ padding:'6px 10px',borderBottom:`1px solid ${BD}`,fontSize:10,color:DIM,letterSpacing:1 }}>Search starter kits</div>
         <div style={{ padding:'6px 10px',borderBottom:`1px solid ${BD}`,display:'flex',gap:6 }}>
           <input value={q} onChange={e => setQ(e.target.value)} placeholder="filter kits…"
             style={{ flex:1,background:'rgba(255,255,255,0.05)',border:`1px solid ${BD}`,fontFamily:F,fontSize:11,color:TD,padding:'4px 8px',outline:'none' }} />
@@ -333,12 +333,12 @@ function KitSem({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,selectedKit,on
           })}
         </div>
         <div style={{ padding:'4px 10px',borderTop:`1px solid ${BD}`,display:'flex',justifyContent:'space-between',background:'rgba(0,0,0,0.2)' }}>
-          <span style={{ fontSize:9,color:DIM,letterSpacing:1 }}>{filtered.length} RESULTS · ruby-genai</span>
+          <span style={{ fontSize:9,color:DIM,letterSpacing:1 }}>{filtered.length} results</span>
           <span style={{ fontSize:9,color:DIM }}>idx: 8kit · 847n</span>
         </div>
         {selectedKit && (
           <div style={{ padding:'8px 12px',borderTop:`1px solid ${BD}`,background:'rgba(0,0,0,0.3)' }}>
-            <div style={{ fontSize:9,color:DIM,letterSpacing:2,marginBottom:4 }}>SELECTED · CONTEXT</div>
+            <div style={{ fontSize:9,color:DIM,letterSpacing:2,marginBottom:4 }}>Selected kit</div>
             <div style={{ fontSize:10,color:'#80C0A0',lineHeight:1.6 }}>{selectedKit.ex}</div>
             <div style={{ marginTop:4,display:'flex',gap:4,flexWrap:'wrap' }}>
               {selectedKit.stack.map(s => <span key={s} style={{ fontSize:9,padding:'1px 6px',border:'1px solid #204030',background:'#0A1810',color:'#50A060' }}>{s}</span>)}
@@ -362,10 +362,10 @@ interface ControllerProps {
 }
 function Controller({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,selectedField,setField,selectedStack,toggleStack }: ControllerProps) {
   return (
-    <Win title="SRL.CONTROLLER" bg={CTRL} w={255} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
+    <Win title="CONTEXT" bg={CTRL} w={255} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
       <div style={{ fontFamily:F,padding:'6px 0' }}>
         <div style={{ padding:'0 12px 5px',borderBottom:`1px solid ${BD}` }}>
-          <div style={{ fontSize:9,color:DIM,letterSpacing:2,marginBottom:5,paddingTop:2 }}>· FIELD</div>
+          <div style={{ fontSize:9,color:DIM,letterSpacing:2,marginBottom:5,paddingTop:2 }}>Field</div>
           {FIELDS.map(f => (
             <div key={f} onClick={() => setField(f)}
               style={{ padding:'3px 10px',cursor:'pointer',fontSize:11,background:selectedField===f?'#1A3A68':'transparent',color:selectedField===f?'#70A8E0':TD,borderLeft:selectedField===f?'2px solid #3060A8':'2px solid transparent',display:'flex',alignItems:'center',gap:6 }}>
@@ -374,7 +374,7 @@ function Controller({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,selectedFi
           ))}
         </div>
         <div style={{ padding:'5px 12px',borderBottom:`1px solid ${BD}` }}>
-          <div style={{ fontSize:9,color:DIM,letterSpacing:2,marginBottom:5 }}>· STACK</div>
+          <div style={{ fontSize:9,color:DIM,letterSpacing:2,marginBottom:5 }}>Stack</div>
           <div style={{ display:'flex',flexWrap:'wrap',gap:4 }}>
             {STACKS.map(s => {
               const on = selectedStack.includes(s);
@@ -383,7 +383,7 @@ function Controller({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,selectedFi
           </div>
         </div>
         <div style={{ padding:'5px 12px' }}>
-          <div style={{ fontSize:9,color:DIM,letterSpacing:2,marginBottom:5 }}>· MODE</div>
+          <div style={{ fontSize:9,color:DIM,letterSpacing:2,marginBottom:5 }}>Mode</div>
           {MODES.map(m => <div key={m} style={{ padding:'3px 10px',fontSize:11,color:DIM }}>{m}</div>)}
         </div>
       </div>
@@ -406,22 +406,22 @@ function OutputWin({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,w=420,h=265
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => { if (ref.current) ref.current.scrollTop = ref.current.scrollHeight; }, [text]);
   return (
-    <Win title="PRD.OUTPUT" bg={DARK} w={w} h={h} resizable onResize={onResize} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
+    <Win title="OUTPUT" bg={DARK} w={w} h={h} resizable onResize={onResize} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
       <div style={{ fontFamily:F, display:'flex', flexDirection:'column', width:'100%', height:'100%' }}>
         <div style={{ padding:'5px 12px',borderBottom:`1px solid ${BD}`,display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(0,0,0,0.3)',flexShrink:0 }}>
           <div style={{ display:'flex',alignItems:'center',gap:8 }}>
             <span style={{ width:6,height:6,borderRadius:'50%',display:'inline-block',background:generating?'#20C060':'#3060A8',boxShadow:generating?'0 0 6px #20C060':'none' }} />
             <span style={{ fontSize:9,color:DIM,letterSpacing:1 }}>
-              {generating ? 'STREAMING…' : `${mode} · ${providers[providerId]?.name ?? providerId} · ${modelId.split('/').pop()}`}
+              {generating ? 'Generating…' : `${mode} · ${providers[providerId]?.name ?? providerId} · ${modelId.split('/').pop()}`}
             </span>
           </div>
           {text && !generating && (
             <button onClick={() => navigator.clipboard.writeText(text)}
-              style={{ fontFamily:F,fontSize:9,color:DIM,background:'transparent',border:`1px solid ${BD}`,padding:'1px 6px',cursor:'pointer',letterSpacing:1 }}>COPY ⎘</button>
+              style={{ fontFamily:F,fontSize:9,color:DIM,background:'transparent',border:`1px solid ${BD}`,padding:'1px 6px',cursor:'pointer',letterSpacing:1 }}>Copy</button>
           )}
         </div>
         <div ref={ref} style={{ padding:'12px 14px',flex:1,overflowY:'auto',fontFamily:F,fontSize:11,color:TD,lineHeight:1.75,whiteSpace:'pre-wrap',wordBreak:'break-word' }}>
-          {text || <span style={{ color:DIM }}>awaiting generation…</span>}
+          {text || <span style={{ color:DIM }}>Output will appear here</span>}
           {generating && <span style={{ color:'#3060A8' }}>▋</span>}
         </div>
       </div>
@@ -448,7 +448,7 @@ function FolderWin({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,sections,ac
     a.href = url; a.download = sec.filename; a.click(); URL.revokeObjectURL(url);
   };
   return (
-    <Win title="PRD.DIR" bg={DARK} w={330} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose} badge={`${sections.length} FILES`}>
+    <Win title="SECTIONS" bg={DARK} w={330} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose} badge={`${sections.length} FILES`}>
       <div style={{ fontFamily:F }}>
         <div style={{ padding:'4px 12px',borderBottom:`1px solid ${BD}`,display:'flex',gap:8,background:'rgba(0,0,0,0.3)' }}>
           <span style={{ fontSize:9,color:DIM,letterSpacing:2,flex:1 }}>NAME</span>
@@ -472,7 +472,7 @@ function FolderWin({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,sections,ac
         </div>
         <div style={{ padding:'7px 12px',borderTop:`1px solid ${BD}`,display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(0,0,0,0.35)' }}>
           <span style={{ fontSize:9,color:DIM }}>{sections.length} files · {fmtSize(total)}</span>
-          <button onClick={onDownloadAll} style={{ fontFamily:F,fontSize:9,padding:'4px 14px',letterSpacing:1,border:'1px solid #4A3800',background:'#1A1200',color:GOLD,cursor:'pointer' }}>↓ BUNDLE.ZIP</button>
+          <button onClick={onDownloadAll} style={{ fontFamily:F,fontSize:9,padding:'4px 14px',letterSpacing:1,border:'1px solid #4A3800',background:'#1A1200',color:GOLD,cursor:'pointer' }}>↓ Download all</button>
         </div>
       </div>
     </Win>
@@ -491,7 +491,7 @@ interface FileViewProps {
 function FileView({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,section }: FileViewProps) {
   if (!section) return null;
   return (
-    <Win title={`FILE.VIEW · ${section.filename}`} bg={DARK} w={400} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
+    <Win title={`PREVIEW · ${section.filename}`} bg={DARK} w={400} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
       <div style={{ fontFamily:F }}>
         <div style={{ padding:'4px 12px',borderBottom:`1px solid ${BD}`,display:'flex',gap:12,background:'rgba(0,0,0,0.3)' }}>
           <span style={{ fontSize:9,color:GOLD,letterSpacing:1 }}>{section.title}</span>
@@ -529,7 +529,7 @@ function PRDChat({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,w=420,h=380,o
   }, [messages]);
 
   return (
-    <Win title="PRD.CHAT" bg={DARK} w={w} h={h} resizable onResize={onResize} pos={pos} zIdx={zIdx}
+    <Win title="REFINE" bg={DARK} w={w} h={h} resizable onResize={onResize} pos={pos} zIdx={zIdx}
       onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}
       badge={sections.length ? `${sections.length} SECTIONS` : undefined}>
       <div style={{ fontFamily:F, display:'flex', flexDirection:'column', width:'100%', height:'100%' }}>
@@ -950,7 +950,7 @@ ${history}`;
         </div>
         <div style={{ display:'flex',gap:16,fontSize:10,color:'#806050',letterSpacing:1 }}>
           <span style={{ color:p.supportsDirectBrowser?'#40A060':WARN }}>
-            {p.supportsDirectBrowser ? '◉ DIRECT' : '◎ PROXY'} · {p.name}
+            {p.supportsDirectBrowser ? '◉ Browser-safe' : '◎ Proxy required'} · {p.name}
           </span>
           <span>△ {clock} · {now.toISOString().slice(0, 10)}</span>
         </div>
@@ -1007,7 +1007,7 @@ ${history}`;
                 color: colCTab === tab ? '#fff' : DIM,
                 border: `1px solid ${colCTab === tab ? BAR : BD}`,
                 cursor:'pointer', textTransform:'uppercase' as const,
-              }}>{tab === 'output' ? 'PRD.OUTPUT' : 'PRD.CHAT'}</button>
+              }}>{tab === 'output' ? 'Output' : 'Refine'}</button>
             ))}
           </div>
         ) : null}
@@ -1053,14 +1053,14 @@ ${history}`;
       {/* status bar */}
       <div style={{ background:'#0E0E0A',borderTop:'1px solid #2A2018',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 12px',height:20,fontFamily:F }}>
         <div style={{ display:'flex',gap:16,fontSize:9,color:'#706050' }}>
-          <span>• VAULT</span>
-          <span>provider <span style={{ color:p.supportsDirectBrowser?'#40A060':WARN }}>{p.name}</span></span>
-          <span>model <span style={{ color:'#8090A0' }}>{modelId.split('/').pop()}</span></span>
-          <span>register <span style={{ color:'#D08040' }}>{selectedKit ? selectedKit.id.toUpperCase() : 'UNSET'}</span></span>
-          <span>mode <span style={{ color:'#60A080' }}>{mode}</span></span>
-          {sections.length > 0 && <span>sections <span style={{ color:GOLD }}>{sections.length}</span></span>}
+          <span>ruby-genai</span>
+          <span><span style={{ color:p.supportsDirectBrowser?'#40A060':WARN }}>{p.name}</span></span>
+          <span><span style={{ color:'#8090A0' }}>{modelId.split('/').pop()}</span></span>
+          <span>kit: <span style={{ color:'#D08040' }}>{selectedKit ? selectedKit.id : 'NONE'}</span></span>
+          <span>mode: <span style={{ color:'#60A080' }}>{mode}</span></span>
+          {sections.length > 0 && <span>{sections.length} sections</span>}
         </div>
-        <span style={{ fontSize:9,color:'#504030',letterSpacing:1 }}>SRL v2.1 · ruby-genai</span>
+        <span style={{ fontSize:9,color:'#504030',letterSpacing:1 }}>RubyDocOps v0.1</span>
       </div>
     </div>
   );
