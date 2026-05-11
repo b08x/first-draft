@@ -1,6 +1,20 @@
 export const SHARED_CONTEXT = `
 PROJECT: ruby-genai-prd-generator
-VERSION: 1.0.0 · phase-1
+VERSION: 2.0.0 · phase-2
+
+─── PARADIGM: DOCUMENT-DRIVEN DEVELOPMENT (DDD) ─────────────────────
+This platform implements DDD: Document-Driven Development in an LLM-native environment.
+The structured document is not just documentation — it is the queryable context store that agents execute against directly at task time.
+
+─── CONTEXT SCHEMA (context_type) ───────────────────────────────────
+Sections are classified into standard semantic roles for agent retrieval:
+  intent        what we are building and why (Overview, Goals)
+  requirement   what the system must do (Technical Requirements, User Stories)
+  constraint    what the system must not do or limits it operates within
+  decision      why this approach over alternatives (Stack Justification, ADR body)
+  example       concrete code or usage patterns (README Usage, Screencast demos)
+  risk          known failure modes, open questions, mitigations
+  milestone     implementation steps, task breakdown, time estimates
 
 ─── ARCHITECTURE ────────────────────────────────────────────────────
 Frontend: React 18 + TypeScript, SRL-style windowed desktop.
@@ -126,6 +140,15 @@ Screencast mode — required ## sections:
 - User Stories: "As a [role], I want [capability] so that [outcome]" format only.
 - Do not invent gems that do not exist (e.g. use RubyLLM, dspy.rb, rooibos, gush).
 - Output pure markdown with ## headers only. No intro/outro.
+
+─── CONTEXT ENGINEERING REQUIREMENTS (DDD) ──────────────────────────
+- Each ## section must begin with 1-2 sentences of pure declarative intent before any elaboration. These sentences are what agents retrieve.
+- Requirements must use imperative voice: "Use X", "Implement Y", not "Consider X"
+- Constraints must be explicitly marked: prefix constraint sentences with "CONSTRAINT:"
+- Decisions must state the rejected alternative: "Use falcon over Puma because..."
+- Examples must be concrete and runnable: no pseudocode, no placeholder values
+- Risk items must include a mitigation: "RISK: X. MITIGATION: Y"
+- Avoid filler sentences that add no retrievable information
 `,
   REFINE: `
 ─── SYSTEM ──────────────────────────────────────────────────────────

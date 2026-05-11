@@ -114,21 +114,24 @@ interface WinProps {
   onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void;
   onFocus: () => void;
   onMinimize?: () => void;
+  onMaximize?: () => void;
   onClose?: () => void;
   resizable?: boolean;
+  maximized?: boolean;
   onResize?: (w: number, h: number) => void;
   children: React.ReactNode;
   badge?: string;
 }
-function Win({ title, bg, w, h, pos, zIdx, onTitleDown, onFocus, onMinimize, onClose, resizable, onResize, children, badge }: WinProps) {
+function Win({ title, bg, w, h, pos, zIdx, onTitleDown, onFocus, onMinimize, onMaximize, onClose, resizable, maximized, onResize, children, badge }: WinProps) {
   return (
-    <div onMouseDown={onFocus} style={{ position:'absolute',left:pos.x,top:pos.y,width:w,height:h,zIndex:zIdx,border:`1px solid ${BAR}`,boxShadow:'2px 2px 0 rgba(0,0,0,0.5)',display:'flex',flexDirection:'column' }}>
+    <div onMouseDown={onFocus} style={{ position:'absolute',left: maximized ? 0 : pos.x,top: maximized ? 0 : pos.y,width: maximized ? '100%' : w,height: maximized ? '100%' : h,zIndex:zIdx,border:`1px solid ${BAR}`,boxShadow: maximized ? 'none' : '2px 2px 0 rgba(0,0,0,0.5)',display:'flex',flexDirection:'column' }}>
       <div onMouseDown={onTitleDown} style={{ background:BAR,padding:'3px 8px',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'move',userSelect:'none',borderBottom:'1px solid #6A0E0E',flexShrink:0 }}>
         <span style={{ fontFamily:F,fontSize:10,color:'#fff',letterSpacing:1.5,fontWeight:700 }}>{title}</span>
         <div style={{ display:'flex',alignItems:'center',gap:10 }}>
           {badge && <span style={{ fontFamily:F,fontSize:9,color:GOLD,letterSpacing:1 }}>{badge}</span>}
           <div style={{ display:'flex',gap:8,color:'rgba(255,255,255,0.4)',fontSize:11,fontWeight:700,userSelect:'none' }}>
-            <span style={{ cursor:onMinimize ? 'pointer' : 'default' }} onClick={(e) => { e.stopPropagation(); onMinimize?.(); }}>_</span>
+            <span style={{ cursor:onMinimize ? 'pointer' : 'default' }} onClick={(e) => { e.stopPropagation(); onMinimize?.(); }}>□</span>
+            <span style={{ cursor:onMaximize ? 'pointer' : 'default' }} onClick={(e) => { e.stopPropagation(); onMaximize?.(); }}>□</span>
             <span style={{ cursor:onClose ? 'pointer' : 'default' }} onClick={(e) => { e.stopPropagation(); onClose?.(); }}>×</span>
           </div>
         </div>
@@ -237,18 +240,18 @@ function ProviderCfg({ pos, zIdx, onTitleDown, onFocus, onMinimize, onClose }: P
 interface PromptNoteProps {
   pos: { x: number; y: number }; zIdx: number;
   onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void; onFocus: () => void;
-  onMinimize?: () => void; onClose?: () => void;
+  onMinimize?: () => void; onMaximize?: () => void; onClose?: () => void; maximized?: boolean;
   prompt: string; setPrompt: (v: string) => void;
   mode: Mode; setMode: (m: Mode) => void;
   scope: string; setScope: (s: string) => void;
   selectedKit: Kit | null;
   onGenerate: () => void; generating: boolean;
 }
-function PromptNote({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,prompt,setPrompt,mode,setMode,scope,setScope,selectedKit,onGenerate,generating }: PromptNoteProps) {
+function PromptNote({ pos,zIdx,onTitleDown,onFocus,onMinimize,onMaximize,onClose,maximized,prompt,setPrompt,mode,setMode,scope,setScope,selectedKit,onGenerate,generating }: PromptNoteProps) {
   const { providerId, modelId } = useSettings();
   const p = providers[providerId];
   return (
-    <Win title="PROMPT.NOTE" bg={CREAM} w={400} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
+    <Win title="PROMPT.NOTE" bg={CREAM} w={400} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onMaximize={onMaximize} onClose={onClose} maximized={maximized}>
       <div style={{ padding:'14px 16px 10px',fontFamily:F }}>
         <div style={{ display:'flex',gap:12,alignItems:'baseline',marginBottom:6 }}>
           <span style={{ fontSize:9,color:'#888880',letterSpacing:2 }}>NOTE</span>
@@ -303,14 +306,14 @@ function PromptNote({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,prompt,set
 interface KitSemProps {
   pos: { x: number; y: number }; zIdx: number;
   onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void; onFocus: () => void;
-  onMinimize?: () => void; onClose?: () => void;
+  onMinimize?: () => void; onMaximize?: () => void; onClose?: () => void; maximized?: boolean;
   selectedKit: Kit | null; onSelectKit: (k: Kit) => void;
 }
-function KitSem({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,selectedKit,onSelectKit }: KitSemProps) {
+function KitSem({ pos,zIdx,onTitleDown,onFocus,onMinimize,onMaximize,onClose,maximized,selectedKit,onSelectKit }: KitSemProps) {
   const [q, setQ] = useState('');
   const filtered = q ? KITS.filter(k => k.name.toLowerCase().includes(q.toLowerCase()) || k.stack.some(s => s.toLowerCase().includes(q.toLowerCase()))) : KITS;
   return (
-    <Win title="CK ──SEM" bg={DARK} w={360} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
+    <Win title="CK ──SEM" bg={DARK} w={360} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onMaximize={onMaximize} onClose={onClose} maximized={maximized}>
       <div style={{ fontFamily:F }}>
         <div style={{ padding:'6px 10px',borderBottom:`1px solid ${BD}`,fontSize:10,color:DIM,letterSpacing:1 }}>ck ──sem · QUERY</div>
         <div style={{ padding:'6px 10px',borderBottom:`1px solid ${BD}`,display:'flex',gap:6 }}>
@@ -356,13 +359,13 @@ function KitSem({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,selectedKit,on
 interface ControllerProps {
   pos: { x: number; y: number }; zIdx: number;
   onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void; onFocus: () => void;
-  onMinimize?: () => void; onClose?: () => void;
+  onMinimize?: () => void; onMaximize?: () => void; onClose?: () => void; maximized?: boolean;
   selectedField: string; setField: (f: string) => void;
   selectedStack: string[]; toggleStack: (s: string) => void;
 }
-function Controller({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,selectedField,setField,selectedStack,toggleStack }: ControllerProps) {
+function Controller({ pos,zIdx,onTitleDown,onFocus,onMinimize,onMaximize,onClose,maximized,selectedField,setField,selectedStack,toggleStack }: ControllerProps) {
   return (
-    <Win title="SRL.CONTROLLER" bg={CTRL} w={255} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
+    <Win title="SRL.CONTROLLER" bg={CTRL} w={255} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onMaximize={onMaximize} onClose={onClose} maximized={maximized}>
       <div style={{ fontFamily:F,padding:'6px 0' }}>
         <div style={{ padding:'0 12px 5px',borderBottom:`1px solid ${BD}` }}>
           <div style={{ fontSize:9,color:DIM,letterSpacing:2,marginBottom:5,paddingTop:2 }}>· FIELD</div>
@@ -397,16 +400,16 @@ function Controller({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,selectedFi
 interface OutputWinProps {
   pos: { x: number; y: number }; zIdx: number;
   onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void; onFocus: () => void;
-  onMinimize?: () => void; onClose?: () => void;
+  onMinimize?: () => void; onMaximize?: () => void; onClose?: () => void; maximized?: boolean;
   w?: number; h?: number; onResize?: (w: number, h: number) => void;
   text: string; generating: boolean; mode: Mode; selectedKit: Kit | null;
 }
-function OutputWin({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,w=420,h=265,onResize,text,generating,mode,selectedKit }: OutputWinProps) {
+function OutputWin({ pos,zIdx,onTitleDown,onFocus,onMinimize,onMaximize,onClose,maximized,w=420,h=265,onResize,text,generating,mode,selectedKit }: OutputWinProps) {
   const { providerId, modelId } = useSettings();
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => { if (ref.current) ref.current.scrollTop = ref.current.scrollHeight; }, [text]);
   return (
-    <Win title="PRD.OUTPUT" bg={DARK} w={w} h={h} resizable onResize={onResize} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
+    <Win title="PRD.OUTPUT" bg={DARK} w={w} h={h} resizable onResize={onResize} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onMaximize={onMaximize} onClose={onClose} maximized={maximized}>
       <div style={{ fontFamily:F, display:'flex', flexDirection:'column', width:'100%', height:'100%' }}>
         <div style={{ padding:'5px 12px',borderBottom:`1px solid ${BD}`,display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(0,0,0,0.3)',flexShrink:0 }}>
           <div style={{ display:'flex',alignItems:'center',gap:8 }}>
@@ -435,11 +438,11 @@ function OutputWin({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,w=420,h=265
 interface FolderWinProps {
   pos: { x: number; y: number }; zIdx: number;
   onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void; onFocus: () => void;
-  onMinimize?: () => void; onClose?: () => void;
+  onMinimize?: () => void; onMaximize?: () => void; onClose?: () => void; maximized?: boolean;
   sections: PRDSection[]; activeFile: PRDSection | null;
   onFileClick: (s: PRDSection) => void; onDownloadAll: () => void;
 }
-function FolderWin({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,sections,activeFile,onFileClick,onDownloadAll }: FolderWinProps) {
+function FolderWin({ pos,zIdx,onTitleDown,onFocus,onMinimize,onMaximize,onClose,maximized,sections,activeFile,onFileClick,onDownloadAll }: FolderWinProps) {
   const total = sections.reduce((s, f) => s + f.bytes, 0);
   const dlOne = (sec: PRDSection) => {
     const blob = new Blob([sec.body], { type:'text/markdown' });
@@ -448,7 +451,7 @@ function FolderWin({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,sections,ac
     a.href = url; a.download = sec.filename; a.click(); URL.revokeObjectURL(url);
   };
   return (
-    <Win title="PRD.DIR" bg={DARK} w={330} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose} badge={`${sections.length} FILES`}>
+    <Win title="PRD.DIR" bg={DARK} w={330} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onMaximize={onMaximize} onClose={onClose} maximized={maximized} badge={`${sections.length} FILES`}>
       <div style={{ fontFamily:F }}>
         <div style={{ padding:'4px 12px',borderBottom:`1px solid ${BD}`,display:'flex',gap:8,background:'rgba(0,0,0,0.3)' }}>
           <span style={{ fontSize:9,color:DIM,letterSpacing:2,flex:1 }}>NAME</span>
@@ -485,13 +488,13 @@ function FolderWin({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,sections,ac
 interface FileViewProps {
   pos: { x: number; y: number }; zIdx: number;
   onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void; onFocus: () => void;
-  onMinimize?: () => void; onClose?: () => void;
+  onMinimize?: () => void; onMaximize?: () => void; onClose?: () => void; maximized?: boolean;
   section: PRDSection | null;
 }
-function FileView({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,section }: FileViewProps) {
+function FileView({ pos,zIdx,onTitleDown,onFocus,onMinimize,onMaximize,onClose,maximized,section }: FileViewProps) {
   if (!section) return null;
   return (
-    <Win title={`FILE.VIEW · ${section.filename}`} bg={DARK} w={400} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
+    <Win title={`FILE.VIEW · ${section.filename}`} bg={DARK} w={400} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onMaximize={onMaximize} onClose={onClose} maximized={maximized}>
       <div style={{ fontFamily:F }}>
         <div style={{ padding:'4px 12px',borderBottom:`1px solid ${BD}`,display:'flex',gap:12,background:'rgba(0,0,0,0.3)' }}>
           <span style={{ fontSize:9,color:GOLD,letterSpacing:1 }}>{section.title}</span>
@@ -514,7 +517,7 @@ interface ChatMessage {
 interface PRDChatProps {
   pos: { x: number; y: number }; zIdx: number;
   onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void; onFocus: () => void;
-  onMinimize?: () => void; onClose?: () => void;
+  onMinimize?: () => void; onMaximize?: () => void; onClose?: () => void; maximized?: boolean;
   w?: number; h?: number; onResize?: (w: number, h: number) => void;
   messages: ChatMessage[];
   input: string; setInput: (v: string) => void;
@@ -522,7 +525,7 @@ interface PRDChatProps {
   sections: PRDSection[];
 }
 
-function PRDChat({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,w=420,h=380,onResize,messages,input,setInput,onSend,busy,sections }: PRDChatProps) {
+function PRDChat({ pos,zIdx,onTitleDown,onFocus,onMinimize,onMaximize,onClose,maximized,w=420,h=380,onResize,messages,input,setInput,onSend,busy,sections }: PRDChatProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -530,7 +533,7 @@ function PRDChat({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,w=420,h=380,o
 
   return (
     <Win title="PRD.CHAT" bg={DARK} w={w} h={h} resizable onResize={onResize} pos={pos} zIdx={zIdx}
-      onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}
+      onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onMaximize={onMaximize} onClose={onClose} maximized={maximized}
       badge={sections.length ? `${sections.length} SECTIONS` : undefined}>
       <div style={{ fontFamily:F, display:'flex', flexDirection:'column', width:'100%', height:'100%' }}>
 
@@ -618,9 +621,125 @@ function PRDChat({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,w=420,h=380,o
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// VAULT.WIN
+// ─────────────────────────────────────────────────────────────────────────────
+interface VaultWinProps {
+  pos: { x: number; y: number }; zIdx: number;
+  onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void; onFocus: () => void;
+  onMinimize?: () => void; onMaximize?: () => void; onClose?: () => void; maximized?: boolean;
+  w?: number; h?: number; onResize?: (w: number, h: number) => void;
+  db: SessionDB | null;
+}
+
+function VaultWin({ pos,zIdx,onTitleDown,onFocus,onMinimize,onMaximize,onClose,maximized,w=400,h=400,onResize,db }: VaultWinProps) {
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [sections, setSections] = useState<any[]>([]);
+  const [activeSession, setActiveSession] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!db) return;
+    db.query('SELECT * FROM session_meta ORDER BY created_at DESC').then(res => {
+      setSessions(res.rows);
+      if (res.rows.length > 0 && !activeSession) setActiveSession(res.rows[0].session_id as string);
+    });
+  }, [db]);
+
+  useEffect(() => {
+    if (!db || !activeSession) return;
+    db.query('SELECT * FROM sections WHERE session_id = $1 ORDER BY created_at DESC', [activeSession]).then(res => {
+      setSections(res.rows);
+    });
+  }, [db, activeSession]);
+
+  return (
+    <Win title="VAULT.VIEW" bg={DARK} w={w} h={h} resizable onResize={onResize} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onMaximize={onMaximize} onClose={onClose} maximized={maximized}>
+      <div style={{ fontFamily:F, display:'flex', height:'100%' }}>
+        <div style={{ width:120, borderRight:`1px solid ${BD}`, display:'flex', flexDirection:'column' }}>
+          <div style={{ padding:'6px 10px', fontSize:9, color:DIM, borderBottom:`1px solid ${BD}` }}>SESSIONS</div>
+          <div style={{ flex:1, overflowY:'auto' }}>
+            {sessions.map(s => (
+              <div key={s.session_id} onClick={() => setActiveSession(s.session_id)}
+                   style={{ padding:'6px 8px', fontSize:10, cursor:'pointer',
+                            background:activeSession===s.session_id?'#1A3A68':'transparent',
+                            color:activeSession===s.session_id?'#70A8E0':TD,
+                            borderLeft:activeSession===s.session_id?'2px solid #3060A8':'2px solid transparent' }}>
+                <div style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{s.session_id.split('-')[0]}</div>
+                <div style={{ fontSize:8, color:DIM }}>{s.mode}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{ flex:1, display:'flex', flexDirection:'column' }}>
+          <div style={{ padding:'6px 10px', fontSize:9, color:DIM, borderBottom:`1px solid ${BD}` }}>DOCUMENTS</div>
+          <div style={{ flex:1, overflowY:'auto' }}>
+            {sections.map(sec => (
+              <div key={sec.id} style={{ padding:'8px 12px', borderBottom:`1px solid ${BD}` }}>
+                <div style={{ fontSize:11, color:GOLD, marginBottom:4 }}>{sec.title}</div>
+                <div style={{ fontSize:9, color:DIM, display:'flex', gap:8, marginBottom:4 }}>
+                  <span style={{ padding:'1px 4px', background:'rgba(255,255,255,0.1)', borderRadius:2 }}>{sec.context_type}</span>
+                  <span>{sec.tool_id}</span>
+                </div>
+                <div style={{ fontSize:10, color:TD, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', opacity:0.8 }}>
+                  {sec.body}
+                </div>
+              </div>
+            ))}
+            {sections.length === 0 && <div style={{ padding:10, fontSize:10, color:DIM }}>No documents found.</div>}
+          </div>
+        </div>
+      </div>
+    </Win>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONTEXT.INSPECTOR
+// ─────────────────────────────────────────────────────────────────────────────
+interface InspectorWinProps {
+  pos: { x: number; y: number }; zIdx: number;
+  onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void; onFocus: () => void;
+  onMinimize?: () => void; onMaximize?: () => void; onClose?: () => void; maximized?: boolean;
+  w?: number; h?: number; onResize?: (w: number, h: number) => void;
+  db: SessionDB | null;
+}
+
+function InspectorWin({ pos,zIdx,onTitleDown,onFocus,onMinimize,onMaximize,onClose,maximized,w=400,h=300,onResize,db }: InspectorWinProps) {
+  const [stats, setStats] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (!db) return;
+    db.query(`SELECT context_type, COUNT(*) as cnt FROM sections GROUP BY context_type`).then(res => {
+      const st: Record<string, number> = {};
+      res.rows.forEach((r: any) => st[r.context_type] = Number(r.cnt));
+      setStats(st);
+    });
+  }, [db]);
+
+  const total = Object.values(stats).reduce((a,b) => a+b, 0);
+
+  return (
+    <Win title="CONTEXT.INSPECTOR" bg={DARK} w={w} h={h} resizable onResize={onResize} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onMaximize={onMaximize} onClose={onClose} maximized={maximized}>
+      <div style={{ fontFamily:F, padding: 12 }}>
+        <div style={{ fontSize:10, color:DIM, marginBottom: 12 }}>Global Context Type Distribution</div>
+        {Object.entries(stats).map(([type, cnt]) => (
+          <div key={type} style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
+            <div style={{ flex:0.4, fontSize:10, color:TD }}>{type.toUpperCase()}</div>
+            <div style={{ flex:1, height:6, background:'rgba(255,255,255,0.1)' }}>
+              <div style={{ height:'100%', background:GOLD, width:`${(cnt/total)*100}%` }} />
+            </div>
+            <div style={{ width:30, textAlign:'right', fontSize:10, color:DIM }}>{cnt}</div>
+          </div>
+        ))}
+        {total === 0 && <div style={{ fontSize:10, color:DIM }}>No data in Vault.</div>}
+      </div>
+    </Win>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // MAIN DESKTOP
 // ─────────────────────────────────────────────────────────────────────────────
-interface WinState { x: number; y: number; z: number; open: boolean; minimized: boolean; }
+interface WinState { x: number; y: number; z: number; open: boolean; minimized: boolean; w?: number; h?: number; }
 
 export default function SRLDesktop() {
   const { providerId, modelId, apiKeys } = useSettings();
@@ -642,21 +761,23 @@ export default function SRLDesktop() {
 
   // ── Window positions + z ──────────────────────────────────────────────────
   const [wins, setWins] = useState<Record<string, WinState>>({
-    // Column A — Config (x=14)
-    provider: { x:14,  y:6,  z:1, open: false, minimized: false },   // PROVIDER.CFG  w=290
-    ctrl:     { x:14,  y:290,z:2, open: false, minimized: false },   // SRL.CONTROLLER w=255
+    // Column A — Config (x=70 to leave room for icons)
+    models:   { x:70,  y:6,  z:1, open: false, minimized: false, maximized: false },
+    context:  { x:70,  y:290,z:2, open: false, minimized: false, maximized: false },
 
-    // Column B — Input (x=318)
-    prompt:   { x:318, y:6,  z:3, open: false, minimized: false },   // PROMPT.NOTE   w=400
-    kit:      { x:318, y:310,z:4, open: false, minimized: false },   // CK ──SEM      w=360
+    // Column B — Input (x=374)
+    describe: { x:374, y:6,  z:3, open: false, minimized: false, maximized: false },
+    kits:     { x:374, y:310,z:4, open: false, minimized: false, maximized: false },
 
-    // Column C — Output (x=730)
-    output:   { x:730, y:6,  z:5, open: false, minimized: false },   // PRD.OUTPUT    w=420
-    folder:   { x:730, y:290,z:6, open: false, minimized: false },   // PRD.DIR       w=330
-    chat:     { x:730, y:6,  z:7, open: false, minimized: false },   // PRD.CHAT      w=420
-    preview:  { x:200, y:80, z:8, open: false, minimized: false },   // FILE.VIEW     w=400
+    // Column C — Output (x=786)
+    output:   { x:786, y:6,  z:5, open: false, minimized: false, maximized: false },
+    sections: { x:786, y:290,z:6, open: false, minimized: false, maximized: false },
+    refine:   { x:786, y:6,  z:7, open: false, minimized: false, maximized: false },
+    vault:    { x:374, y:6,  z:8, open: false, minimized: false, maximized: false, w: 500, h: 400 },
+    preview:  { x:200, y:80, z:9, open: false, minimized: false, maximized: false },
+    inspector:{ x:374, y:310,z:10,open: false, minimized: false, maximized: false, w: 400, h: 300 },
   });
-  const maxZ = useRef(8);
+  const maxZ = useRef(10);
   const drag = useRef<{ id: string; ox: number; oy: number } | null>(null);
 
   const setWinState = useCallback((id: string, updates: Partial<WinState>) => {
@@ -681,7 +802,60 @@ export default function SRLDesktop() {
   }, []);
 
   // ── Generation state ──────────────────────────────────────────────────────
+  const [activeMenu,    setActiveMenu]    = useState<string | null>(null);
+  const [editHistory,   setEditHistory]   = useState<{filename: string; previousBody: string}[]>([]);
+  const [redoHistory,   setRedoHistory]   = useState<{filename: string; previousBody: string}[]>([]);
   const [prompt,        setPrompt]        = useState('');
+
+  const toggleWin = useCallback((id: string) => {
+    setWins(prev => {
+      if (!prev[id]) return prev;
+      if (prev[id].open) {
+        return { ...prev, [id]: { ...prev[id], open: false } };
+      } else {
+        maxZ.current += 1;
+        return { ...prev, [id]: { ...prev[id], open: true, minimized: false, z: maxZ.current } };
+      }
+    });
+  }, []);
+
+  const bringAllToFront = () => {
+    setWins(prev => {
+      const next = { ...prev };
+      for (const id in next) {
+        if (next[id].open) {
+          maxZ.current += 1;
+          next[id].z = maxZ.current;
+        }
+      }
+      return next;
+    });
+  };
+
+  const minimizeAll = () => {
+    setWins(prev => {
+      const next = { ...prev };
+      for (const id in next) {
+        if (next[id].open) next[id].minimized = true;
+      }
+      return next;
+    });
+  };
+
+  const copyFullPrd = () => {
+    const text = sections.map(s => `## ${s.title}\n${s.body}`).join('\n\n');
+    navigator.clipboard.writeText(text);
+  };
+  const copySection = () => {
+    if (activeFile) navigator.clipboard.writeText(`## ${activeFile.title}\n${activeFile.body}`);
+  };
+  const saveToVault = async () => {
+    if (!dbRef.current) return;
+    for (const sec of sections) {
+      await storeSection(dbRef.current, { session_id: sessionIdRef.current, title: sec.title, body: sec.body });
+    }
+  };
+
   const [mode,          setMode]          = useState<Mode>('PRD');
   const [scope,         setScope]         = useState('new');
   const [selectedKit,   setSelectedKit]   = useState<Kit | null>(null);
@@ -820,7 +994,7 @@ ${history}`;
   const generate = async () => {
     if (!prompt.trim()) return;
     setGenerating(true); setOutputText(''); setSections([]);
-    openWin('output'); closeWin('folder'); closeWin('preview'); setActiveFile(null);
+    openWin('output'); closeWin('sections'); closeWin('preview'); setActiveFile(null);
     focusWin('output');
 
     // Seed session meta
@@ -863,10 +1037,10 @@ ${history}`;
           await storeSection(db, { session_id: sessionId, title: sec.title, body: sec.body, embedding });
         }
       }
-      openWin('chat');
+      openWin('refine');
       setChatMessages([]);
       setColCTab('chat');
-      focusWin('chat');
+      focusWin('refine');
     } catch (e) {
       setOutputText(`ERROR · ${(e as Error).message}`);
       setGenerating(false);
@@ -905,14 +1079,97 @@ ${history}`;
   const p     = providers[providerId];
 
   const DESKTOP_ICONS = [
-    { id: 'provider', label: 'PROVIDER.CFG', icon: '⎈' },
-    { id: 'ctrl', label: 'SRL.CONTROLLER', icon: '⌘' },
-    { id: 'prompt', label: 'PROMPT.NOTE', icon: '∆' },
-    { id: 'kit', label: 'CK ──SEM', icon: '◈' },
-    { id: 'output', label: 'PRD.OUTPUT', icon: '▤' },
-    { id: 'folder', label: 'PRD.DIR', icon: '◫' },
-    { id: 'chat', label: 'PRD.CHAT', icon: '💬' },
+    { id: 'describe', label: 'Describe', icon: '📝' },
+    { id: 'kits', label: 'Kit Search', icon: '🔍' },
+    { id: 'context', label: 'Context', icon: '⚙' },
+    { id: 'models', label: 'Models', icon: '🔌' },
+    { id: 'output', label: 'Output', icon: '📄' },
+    { id: 'sections', label: 'Sections', icon: '📁' },
+    { id: 'refine', label: 'Refine', icon: '💬' },
+    { id: 'vault', label: 'Vault', icon: '🗄' },
   ];
+
+  type MenuItem = { label: string; action?: () => void; divider?: boolean };
+  const MENUS: Record<string, MenuItem[]> = {
+    File: [
+      { label: 'New Session' },
+      { divider: true },
+      { label: 'Open Vault Entry…' },
+      { divider: true },
+      { label: 'Save to Vault', action: saveToVault },
+      { label: 'Export Bundle…', action: downloadZip },
+      { label: 'Export Context Pack…' },
+      { divider: true },
+      { label: 'Preferences…', action: () => openWin('models') }
+    ],
+    Edit: [
+      { label: 'Undo Section Edit' },
+      { label: 'Redo' },
+      { divider: true },
+      { label: 'Copy Full PRD', action: copyFullPrd },
+      { label: 'Copy Section', action: copySection },
+      { divider: true },
+      { label: 'Clear Refine Chat', action: () => setChatMessages([]) },
+      { label: 'Clear Output', action: () => setOutputText('') }
+    ],
+    View: [
+      { label: 'Layout: Describe' },
+      { label: 'Layout: Generate' },
+      { label: 'Layout: Review' },
+      { label: 'Layout: Vault' },
+      { divider: true },
+      { label: 'Toggle Describe', action: () => toggleWin('describe') },
+      { label: 'Toggle Kit Search', action: () => toggleWin('kits') },
+      { label: 'Toggle Context', action: () => toggleWin('context') },
+      { label: 'Toggle Models', action: () => toggleWin('models') },
+      { divider: true },
+      { label: 'Zoom In / Zoom Out' }
+    ],
+    Vault: [
+      { label: 'Browse Sessions…', action: () => openWin('vault') },
+      { label: 'Search Vault…' },
+      { divider: true },
+      { label: 'Context Type Inspector', action: () => openWin('inspector') },
+      { divider: true },
+      { label: 'Import Session…' },
+      { label: 'Clear Vault' }
+    ],
+    Tools: [
+      { label: '✓ PRD Generator' },
+      { divider: true },
+      { label: 'Gem README' },
+      { label: 'ADR Writer' },
+      { label: 'Spec Writer' },
+      { label: 'Changelog' },
+      { label: 'Screencast Script' },
+      { divider: true },
+      { label: 'Manage Tools…' }
+    ],
+    Window: [
+      { label: 'Bring All to Front', action: bringAllToFront },
+      { label: 'Minimize All', action: minimizeAll },
+      { label: 'Arrange: Columns' },
+      { divider: true },
+      ...Object.entries(wins).filter(([_, w]) => w.open).map(([id, w]) => ({
+        label: `${w.minimized ? '·' : '✓'} ${DESKTOP_ICONS.find(i=>i.id===id)?.label || id.toUpperCase()}`,
+        action: () => { setWinState(id, { minimized: false }); focusWin(id); }
+      }))
+    ],
+    '?': [
+      { label: 'About RubyDocOps' },
+      { label: 'Keyboard Shortcuts' },
+      { label: 'What is DDD?' },
+      { label: 'Report Issue…' }
+    ]
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setActiveMenu(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -942,10 +1199,31 @@ ${history}`;
       `}</style>
 
       {/* menu bar */}
-      <div style={{ background:'#1A1A14',borderBottom:'1px solid #3A3028',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 12px',height:22,fontFamily:F }}>
+      <div style={{ background:'#1A1A14',borderBottom:'1px solid #3A3028',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 12px',height:22,fontFamily:F,position:'relative',zIndex:9999 }}>
         <div style={{ display:'flex',gap:18 }}>
           {['SRL','File','Edit','View','Vault','Tools','Window','?'].map((m, i) => (
-            <span key={m} style={{ fontSize:11,cursor:'default',letterSpacing:i===0?2:.5,fontWeight:i===0?700:400,color:i===0?'#C04020':'#A09080' }}>{m}</span>
+            <div key={m} style={{ position: 'relative' }}>
+              <span
+                onClick={() => setActiveMenu(activeMenu === m ? null : m)}
+                style={{ fontSize:11,cursor:'pointer',letterSpacing:i===0?2:.5,fontWeight:i===0?700:400,color:activeMenu===m?'#FFF':(i===0?'#C04020':'#A09080') }}
+              >
+                {m}
+              </span>
+              {activeMenu === m && MENUS[m] && (
+                <div style={{ position:'absolute',top:22,left:0,background:'#1A1A14',border:'1px solid #3A3028',minWidth:220,boxShadow:'2px 2px 0 rgba(0,0,0,0.5)',padding:'4px 0',zIndex:10000 }}>
+                  {MENUS[m].map((item, idx) => item.divider ? (
+                    <div key={idx} style={{ height:1,background:'#3A3028',margin:'4px 0' }} />
+                  ) : (
+                    <div key={idx} onClick={() => { if(item.action) item.action(); setActiveMenu(null); }}
+                      style={{ padding:'4px 16px',fontSize:10,color:item.action?'#D0C0B0':'#605040',cursor:item.action?'pointer':'default' }}
+                      onMouseEnter={e => { if(item.action) e.currentTarget.style.background = '#2A2018'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+                      {item.label}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </div>
         <div style={{ display:'flex',gap:16,fontSize:10,color:'#806050',letterSpacing:1 }}>
@@ -958,56 +1236,71 @@ ${history}`;
 
       {/* desktop */}
       <div className="srl-desktop-surface" onMouseMove={onMouseMove} onMouseUp={onMouseUp}
+        onClick={() => setActiveMenu(null)}
         style={{ position:'relative',width:'100%',flex:1,background:DESK,overflow:'hidden',
           backgroundImage:'repeating-linear-gradient(0deg,rgba(0,0,0,0.06) 0,rgba(0,0,0,0.06) 1px,transparent 1px,transparent 4px),repeating-linear-gradient(90deg,rgba(0,0,0,0.06) 0,rgba(0,0,0,0.06) 1px,transparent 1px,transparent 4px)',
           backgroundSize:'4px 4px' }}>
 
-        <div style={{ position:'absolute', top: 20, left: 14, display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {DESKTOP_ICONS.map(i => (
-            <div key={i.id} onClick={() => openWin(i.id)} style={{ width: 60, textAlign: 'center', cursor: 'pointer' }}>
-              <div style={{ fontSize: 28, color: '#A0D0B0', opacity: 0.8, lineHeight: 1 }}>{i.icon}</div>
-              <div style={{ fontFamily: F, fontSize: 8, color: '#A0D0B0', letterSpacing: 1, marginTop: 4, textShadow: '1px 1px 0 rgba(0,0,0,0.6)' }}>{i.label}</div>
-            </div>
-          ))}
+        <div style={{ position:'absolute', top: 20, left: 8, display: 'flex', flexDirection: 'column', gap: 68 - 40 }}>
+          {DESKTOP_ICONS.map(i => {
+            const active = wins[i.id]?.open;
+            const minim  = wins[i.id]?.minimized;
+            return (
+              <div key={i.id} onClick={() => {
+                if (!wins[i.id]?.open) {
+                  openWin(i.id);
+                } else if (wins[i.id]?.minimized) {
+                  setWinState(i.id, { minimized: false });
+                  focusWin(i.id);
+                } else {
+                  focusWin(i.id);
+                }
+              }} style={{ width: 44, height: 68, textAlign: 'center', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ width: 40, height: 40, fontSize: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#A0D0B0', opacity: 0.8, lineHeight: 1, border: active && !minim ? `1px solid ${BAR}` : '1px solid transparent', background: active && !minim ? 'rgba(0,0,0,0.3)' : 'transparent' }}>{i.icon}</div>
+                <div style={{ fontFamily: F, fontSize: 10, color: '#A0D0B0', letterSpacing: 0.5, marginTop: 4, textShadow: '1px 1px 0 rgba(0,0,0,0.6)', width: 60 }}>{i.label}</div>
+                {minim && <div style={{ width: 4, height: 4, borderRadius: '50%', background: GOLD, marginTop: 2 }} />}
+              </div>
+            );
+          })}
         </div>
 
-        {wins.prompt.open && !wins.prompt.minimized && (
-          <PromptNote pos={wins.prompt} zIdx={wins.prompt.z} onTitleDown={e => onTitleDown('prompt', e)} onFocus={() => focusWin('prompt')} onMinimize={() => minimizeWin('prompt')} onClose={() => closeWin('prompt')}
+        {wins.describe.open && !wins.describe.minimized && (
+          <PromptNote pos={wins.describe} zIdx={wins.describe.z} onTitleDown={e => onTitleDown('describe', e)} onFocus={() => focusWin('describe')} onMinimize={() => minimizeWin('describe')} onClose={() => closeWin('describe')}
             prompt={prompt} setPrompt={setPrompt} mode={mode} setMode={setMode} scope={scope} setScope={setScope}
             selectedKit={selectedKit} onGenerate={generate} generating={generating} />
         )}
 
-        {wins.kit.open && !wins.kit.minimized && (
-          <KitSem pos={wins.kit} zIdx={wins.kit.z} onTitleDown={e => onTitleDown('kit', e)} onFocus={() => focusWin('kit')} onMinimize={() => minimizeWin('kit')} onClose={() => closeWin('kit')}
+        {wins.kits.open && !wins.kits.minimized && (
+          <KitSem pos={wins.kits} zIdx={wins.kits.z} onTitleDown={e => onTitleDown('kits', e)} onFocus={() => focusWin('kits')} onMinimize={() => minimizeWin('kits')} onClose={() => closeWin('kits')}
             selectedKit={selectedKit} onSelectKit={selectKit} />
         )}
 
-        {wins.ctrl.open && !wins.ctrl.minimized && (
-          <Controller pos={wins.ctrl} zIdx={wins.ctrl.z} onTitleDown={e => onTitleDown('ctrl', e)} onFocus={() => focusWin('ctrl')} onMinimize={() => minimizeWin('ctrl')} onClose={() => closeWin('ctrl')}
+        {wins.context.open && !wins.context.minimized && (
+          <Controller pos={wins.context} zIdx={wins.context.z} onTitleDown={e => onTitleDown('context', e)} onFocus={() => focusWin('context')} onMinimize={() => minimizeWin('context')} onClose={() => closeWin('context')}
             selectedField={selectedField} setField={setSelectedField} selectedStack={selectedStack} toggleStack={toggleStack} />
         )}
 
-        {wins.provider.open && !wins.provider.minimized && (
-          <ProviderCfg pos={wins.provider} zIdx={wins.provider.z} onTitleDown={e => onTitleDown('provider', e)} onFocus={() => focusWin('provider')} onMinimize={() => minimizeWin('provider')} onClose={() => closeWin('provider')} />
+        {wins.models.open && !wins.models.minimized && (
+          <ProviderCfg pos={wins.models} zIdx={wins.models.z} onTitleDown={e => onTitleDown('models', e)} onFocus={() => focusWin('models')} onMinimize={() => minimizeWin('models')} onClose={() => closeWin('models')} />
         )}
 
-        {(wins.output.open && !wins.output.minimized) || (wins.chat.open && !wins.chat.minimized) ? (
+        {(wins.output.open && !wins.output.minimized) || (wins.refine.open && !wins.refine.minimized) ? (
           <div style={{
             position:'absolute', left: wins.output.x, top: wins.output.y - 22,
-            zIndex: Math.max(wins.output.z, wins.chat.z) + 1,
+            zIndex: Math.max(wins.output.z, wins.refine.z) + 1,
             display:'flex', gap:0, fontFamily:F,
           }}>
-            {['output','chat'].filter(tab => wins[tab].open && !wins[tab].minimized).map(tab => (
+            {['output','refine'].filter(tab => wins[tab].open && !wins[tab].minimized).map(tab => (
               <button key={tab} onClick={() => {
                 setColCTab(tab as 'output' | 'chat');
-                focusWin(tab === 'output' ? 'output' : 'chat');
+                focusWin(tab === 'output' ? 'output' : 'refine');
               }} style={{
                 fontSize:9, padding:'3px 12px', letterSpacing:1.5,
-                background: colCTab === tab ? BAR : 'rgba(0,0,0,0.4)',
-                color: colCTab === tab ? '#fff' : DIM,
-                border: `1px solid ${colCTab === tab ? BAR : BD}`,
+                background: (tab === 'output' && colCTab === 'output') || (tab === 'refine' && colCTab === 'chat') ? BAR : 'rgba(0,0,0,0.4)',
+                color: (tab === 'output' && colCTab === 'output') || (tab === 'refine' && colCTab === 'chat') ? '#fff' : DIM,
+                border: `1px solid ${(tab === 'output' && colCTab === 'output') || (tab === 'refine' && colCTab === 'chat') ? BAR : BD}`,
                 cursor:'pointer', textTransform:'uppercase' as const,
-              }}>{tab === 'output' ? 'PRD.OUTPUT' : 'PRD.CHAT'}</button>
+              }}>{tab === 'output' ? 'OUTPUT' : 'REFINE'}</button>
             ))}
           </div>
         ) : null}
@@ -1018,13 +1311,13 @@ ${history}`;
             text={outputText} generating={generating} mode={mode} selectedKit={selectedKit} />
         )}
 
-        {wins.chat.open && !wins.chat.minimized && colCTab === 'chat' && sections.length > 0 && (
+        {wins.refine.open && !wins.refine.minimized && colCTab === 'chat' && sections.length > 0 && (
           <PRDChat
-            pos={wins.chat} zIdx={wins.chat.z}
-            onTitleDown={e => onTitleDown('chat', e)}
-            onFocus={() => focusWin('chat')}
-            onMinimize={() => minimizeWin('chat')} onClose={() => closeWin('chat')}
-            w={wins.chat.w} h={wins.chat.h} onResize={(w,h) => setWinState('chat', { w, h })}
+            pos={wins.refine} zIdx={wins.refine.z}
+            onTitleDown={e => onTitleDown('refine', e)}
+            onFocus={() => focusWin('refine')}
+            onMinimize={() => minimizeWin('refine')} onClose={() => closeWin('refine')}
+            w={wins.refine.w} h={wins.refine.h} onResize={(w,h) => setWinState('refine', { w, h })}
             messages={chatMessages}
             input={chatInput} setInput={setChatInput}
             onSend={sendChatMessage} busy={chatBusy}
@@ -1032,13 +1325,27 @@ ${history}`;
           />
         )}
 
-        {wins.folder.open && !wins.folder.minimized && sections.length > 0 && (
-          <FolderWin pos={wins.folder} zIdx={wins.folder.z} onTitleDown={e => onTitleDown('folder', e)} onFocus={() => focusWin('folder')} onMinimize={() => minimizeWin('folder')} onClose={() => closeWin('folder')}
+        {wins.sections.open && !wins.sections.minimized && sections.length > 0 && (
+          <FolderWin pos={wins.sections} zIdx={wins.sections.z} onTitleDown={e => onTitleDown('sections', e)} onFocus={() => focusWin('sections')} onMinimize={() => minimizeWin('sections')} onClose={() => closeWin('sections')}
+            onMaximize={() => setWinState('sections', { maximized: !wins.sections.maximized })} maximized={wins.sections.maximized}
             sections={sections} activeFile={activeFile} onFileClick={openFile} onDownloadAll={downloadZip} />
+        )}
+
+        {wins.vault.open && !wins.vault.minimized && (
+          <VaultWin pos={wins.vault} zIdx={wins.vault.z} w={wins.vault.w} h={wins.vault.h} onResize={(w,h) => setWinState('vault',{w,h})} onTitleDown={e => onTitleDown('vault', e)} onFocus={() => focusWin('vault')} onMinimize={() => minimizeWin('vault')} onClose={() => closeWin('vault')} 
+            onMaximize={() => setWinState('vault', { maximized: !wins.vault.maximized })} maximized={wins.vault.maximized}
+            db={dbRef.current} />
+        )}
+
+        {wins.inspector.open && !wins.inspector.minimized && (
+          <InspectorWin pos={wins.inspector} zIdx={wins.inspector.z} w={wins.inspector.w} h={wins.inspector.h} onResize={(w,h) => setWinState('inspector',{w,h})} onTitleDown={e => onTitleDown('inspector', e)} onFocus={() => focusWin('inspector')} onMinimize={() => minimizeWin('inspector')} onClose={() => closeWin('inspector')} 
+            onMaximize={() => setWinState('inspector', { maximized: !wins.inspector.maximized })} maximized={wins.inspector.maximized}
+            db={dbRef.current} />
         )}
 
         {wins.preview.open && !wins.preview.minimized && activeFile && (
           <FileView pos={wins.preview} zIdx={wins.preview.z} onTitleDown={e => onTitleDown('preview', e)} onFocus={() => focusWin('preview')} onMinimize={() => minimizeWin('preview')} onClose={() => closeWin('preview')}
+            onMaximize={() => setWinState('preview', { maximized: !wins.preview.maximized })} maximized={wins.preview.maximized}
             section={activeFile} />
         )}
 
@@ -1048,6 +1355,19 @@ ${history}`;
           <div style={{ fontSize:20,marginBottom:2,opacity:.1 }}>◫</div>
           MEMORY.STACK
         </div>
+      </div>
+
+      {/* taskbar */}
+      <div style={{ background: '#0E0E0A', borderTop: '1px solid #2A2018', display: 'flex', alignItems: 'center', padding: '0 8px', height: 24, gap: 6, fontFamily: F }}>
+        {Object.entries(wins).filter(([_, w]) => w.open && w.minimized).map(([id, w]) => {
+          const iconDef = DESKTOP_ICONS.find(i => i.id === id);
+          return (
+            <button key={id} onClick={() => { setWinState(id, { minimized: false }); focusWin(id); }}
+              style={{ background: '#1A1A14', border: '1px solid #3A3028', color: '#A0D0B0', fontSize: 10, padding: '2px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span>{iconDef?.icon || '·'}</span> {iconDef?.label || id.toUpperCase()}
+            </button>
+          );
+        })}
       </div>
 
       {/* status bar */}
