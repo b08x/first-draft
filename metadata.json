@@ -1,0 +1,6 @@
+{
+  "name": "Ruby GenAI PRD Generator",
+  "description": "A windowed desktop environment for generating precise Ruby LLM product requirements documents using retrieval-augmented generation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
