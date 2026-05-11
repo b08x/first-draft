@@ -109,19 +109,21 @@ function Tag({ label, color }: { label: string; color: keyof typeof TAG_COLS }) 
 // WIN CHROME
 // ─────────────────────────────────────────────────────────────────────────────
 interface WinProps {
-  title: string; bg: string; w: number;
+  title: string; bg: string; w: number; h?: number;
   pos: { x: number; y: number }; zIdx: number;
   onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void;
   onFocus: () => void;
   onMinimize?: () => void;
   onClose?: () => void;
+  resizable?: boolean;
+  onResize?: (w: number, h: number) => void;
   children: React.ReactNode;
   badge?: string;
 }
-function Win({ title, bg, w, pos, zIdx, onTitleDown, onFocus, onMinimize, onClose, children, badge }: WinProps) {
+function Win({ title, bg, w, h, pos, zIdx, onTitleDown, onFocus, onMinimize, onClose, resizable, onResize, children, badge }: WinProps) {
   return (
-    <div onMouseDown={onFocus} style={{ position:'absolute',left:pos.x,top:pos.y,width:w,zIndex:zIdx,border:`1px solid ${BAR}`,boxShadow:'2px 2px 0 rgba(0,0,0,0.5)' }}>
-      <div onMouseDown={onTitleDown} style={{ background:BAR,padding:'3px 8px',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'move',userSelect:'none',borderBottom:'1px solid #6A0E0E' }}>
+    <div onMouseDown={onFocus} style={{ position:'absolute',left:pos.x,top:pos.y,width:w,height:h,zIndex:zIdx,border:`1px solid ${BAR}`,boxShadow:'2px 2px 0 rgba(0,0,0,0.5)',display:'flex',flexDirection:'column' }}>
+      <div onMouseDown={onTitleDown} style={{ background:BAR,padding:'3px 8px',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'move',userSelect:'none',borderBottom:'1px solid #6A0E0E',flexShrink:0 }}>
         <span style={{ fontFamily:F,fontSize:10,color:'#fff',letterSpacing:1.5,fontWeight:700 }}>{title}</span>
         <div style={{ display:'flex',alignItems:'center',gap:10 }}>
           {badge && <span style={{ fontFamily:F,fontSize:9,color:GOLD,letterSpacing:1 }}>{badge}</span>}
@@ -131,7 +133,26 @@ function Win({ title, bg, w, pos, zIdx, onTitleDown, onFocus, onMinimize, onClos
           </div>
         </div>
       </div>
-      <div style={{ background:bg,overflow:'hidden' }}>{children}</div>
+      <div style={{ background:bg,overflow:'hidden',flex:1,display:'flex',flexDirection:'column',position:'relative' }}>
+        {children}
+        {resizable && onResize && (
+          <div
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              const startX = e.clientX;
+              const startY = e.clientY;
+              const startW = w;
+              const startH = h || e.currentTarget.parentElement?.parentElement?.offsetHeight || 300;
+              const move = (ev: MouseEvent) => {
+                onResize(Math.max(250, startW + ev.clientX - startX), Math.max(150, startH + ev.clientY - startY));
+              };
+              const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+              window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
+            }}
+            style={{ position:'absolute',bottom:0,right:0,width:12,height:12,cursor:'nwse-resize',zIndex:10,background:'linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.3) 50%, transparent 55%, rgba(255,255,255,0.3) 65%, transparent 70%, rgba(255,255,255,0.3) 85%)' }}
+          />
+        )}
+      </div>
     </div>
   );
 }
@@ -377,16 +398,17 @@ interface OutputWinProps {
   pos: { x: number; y: number }; zIdx: number;
   onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void; onFocus: () => void;
   onMinimize?: () => void; onClose?: () => void;
+  w?: number; h?: number; onResize?: (w: number, h: number) => void;
   text: string; generating: boolean; mode: Mode; selectedKit: Kit | null;
 }
-function OutputWin({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,text,generating,mode,selectedKit }: OutputWinProps) {
+function OutputWin({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,w=420,h=265,onResize,text,generating,mode,selectedKit }: OutputWinProps) {
   const { providerId, modelId } = useSettings();
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => { if (ref.current) ref.current.scrollTop = ref.current.scrollHeight; }, [text]);
   return (
-    <Win title="PRD.OUTPUT" bg={DARK} w={420} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
-      <div style={{ fontFamily:F }}>
-        <div style={{ padding:'5px 12px',borderBottom:`1px solid ${BD}`,display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(0,0,0,0.3)' }}>
+    <Win title="PRD.OUTPUT" bg={DARK} w={w} h={h} resizable onResize={onResize} pos={pos} zIdx={zIdx} onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}>
+      <div style={{ fontFamily:F, display:'flex', flexDirection:'column', width:'100%', height:'100%' }}>
+        <div style={{ padding:'5px 12px',borderBottom:`1px solid ${BD}`,display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(0,0,0,0.3)',flexShrink:0 }}>
           <div style={{ display:'flex',alignItems:'center',gap:8 }}>
             <span style={{ width:6,height:6,borderRadius:'50%',display:'inline-block',background:generating?'#20C060':'#3060A8',boxShadow:generating?'0 0 6px #20C060':'none' }} />
             <span style={{ fontSize:9,color:DIM,letterSpacing:1 }}>
@@ -398,7 +420,7 @@ function OutputWin({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,text,genera
               style={{ fontFamily:F,fontSize:9,color:DIM,background:'transparent',border:`1px solid ${BD}`,padding:'1px 6px',cursor:'pointer',letterSpacing:1 }}>COPY ⎘</button>
           )}
         </div>
-        <div ref={ref} style={{ padding:'12px 14px',maxHeight:220,overflowY:'auto',fontFamily:F,fontSize:11,color:TD,lineHeight:1.75,whiteSpace:'pre-wrap',wordBreak:'break-word' }}>
+        <div ref={ref} style={{ padding:'12px 14px',flex:1,overflowY:'auto',fontFamily:F,fontSize:11,color:TD,lineHeight:1.75,whiteSpace:'pre-wrap',wordBreak:'break-word' }}>
           {text || <span style={{ color:DIM }}>awaiting generation…</span>}
           {generating && <span style={{ color:'#3060A8' }}>▋</span>}
         </div>
@@ -493,26 +515,27 @@ interface PRDChatProps {
   pos: { x: number; y: number }; zIdx: number;
   onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void; onFocus: () => void;
   onMinimize?: () => void; onClose?: () => void;
+  w?: number; h?: number; onResize?: (w: number, h: number) => void;
   messages: ChatMessage[];
   input: string; setInput: (v: string) => void;
   onSend: () => void; busy: boolean;
   sections: PRDSection[];
 }
 
-function PRDChat({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,messages,input,setInput,onSend,busy,sections }: PRDChatProps) {
+function PRDChat({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,w=420,h=380,onResize,messages,input,setInput,onSend,busy,sections }: PRDChatProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages]);
 
   return (
-    <Win title="PRD.CHAT" bg={DARK} w={420} pos={pos} zIdx={zIdx}
+    <Win title="PRD.CHAT" bg={DARK} w={w} h={h} resizable onResize={onResize} pos={pos} zIdx={zIdx}
       onTitleDown={onTitleDown} onFocus={onFocus} onMinimize={onMinimize} onClose={onClose}
       badge={sections.length ? `${sections.length} SECTIONS` : undefined}>
-      <div style={{ fontFamily:F }}>
+      <div style={{ fontFamily:F, display:'flex', flexDirection:'column', width:'100%', height:'100%' }}>
 
         {/* section quick-ref bar */}
-        <div style={{ padding:'4px 10px', borderBottom:`1px solid ${BD}`,
+        <div style={{ padding:'4px 10px', borderBottom:`1px solid ${BD}`, flexShrink:0,
           display:'flex', gap:4, flexWrap:'wrap', background:'rgba(0,0,0,0.25)' }}>
           {sections.slice(0,5).map(s => (
             <span key={s.filename}
@@ -529,7 +552,7 @@ function PRDChat({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,messages,inpu
         </div>
 
         {/* message history */}
-        <div ref={scrollRef} style={{ padding:'10px 12px', height:240,
+        <div ref={scrollRef} style={{ padding:'10px 12px', flex:1,
           overflowY:'auto', display:'flex', flexDirection:'column', gap:8 }}>
           {messages.length === 0 && (
             <div style={{ fontSize:10, color:DIM, lineHeight:1.6 }}>
@@ -569,7 +592,7 @@ function PRDChat({ pos,zIdx,onTitleDown,onFocus,onMinimize,onClose,messages,inpu
         </div>
 
         {/* input row */}
-        <div style={{ padding:'8px 10px', borderTop:`1px solid ${BD}`,
+        <div style={{ padding:'8px 10px', borderTop:`1px solid ${BD}`, flexShrink:0,
           display:'flex', gap:6, background:'rgba(0,0,0,0.2)' }}>
           <textarea
             value={input}
@@ -991,6 +1014,7 @@ ${history}`;
 
         {wins.output.open && !wins.output.minimized && colCTab === 'output' && (
           <OutputWin pos={wins.output} zIdx={wins.output.z} onTitleDown={e => onTitleDown('output', e)} onFocus={() => focusWin('output')} onMinimize={() => minimizeWin('output')} onClose={() => closeWin('output')}
+            w={wins.output.w} h={wins.output.h} onResize={(w,h) => setWinState('output', { w, h })}
             text={outputText} generating={generating} mode={mode} selectedKit={selectedKit} />
         )}
 
@@ -1000,6 +1024,7 @@ ${history}`;
             onTitleDown={e => onTitleDown('chat', e)}
             onFocus={() => focusWin('chat')}
             onMinimize={() => minimizeWin('chat')} onClose={() => closeWin('chat')}
+            w={wins.chat.w} h={wins.chat.h} onResize={(w,h) => setWinState('chat', { w, h })}
             messages={chatMessages}
             input={chatInput} setInput={setChatInput}
             onSend={sendChatMessage} busy={chatBusy}
