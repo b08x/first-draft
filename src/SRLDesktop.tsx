@@ -577,8 +577,12 @@ CONSTRAINTS: Ruby-native only. Prefer async/falcon. Prefer dspy.rb typed signatu
     try {
       // Real streaming via provider registry
       const provider = providers[providerId];
-      const apiKey   = apiKeys[providerId] ?? '';
+      const apiKey   = (apiKeys[providerId] || '').trim();
       let full = '';
+
+      if (!apiKey && provider.id !== 'ollama') {
+        throw new Error(`Missing API key for ${provider.name}. Please configure it in PROVIDER.CFG window.`);
+      }
 
       const stream = provider.stream({ system: buildSystem(), user: prompt }, apiKey, modelId);
       for await (const chunk of stream) {
