@@ -1,10 +1,13 @@
-import {StrictMode} from 'react';
-import {createRoot} from 'react-dom/client';
-import App from './App.tsx';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { SettingsProvider } from './lib/context/SettingsContext';
+import SRLDesktop from './SRLDesktop';
 import './index.css';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <SettingsProvider>
+      <SRLDesktop />
+    </SettingsProvider>
+  </React.StrictMode>
 );
