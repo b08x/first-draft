@@ -470,6 +470,116 @@ function FileView({ pos,zIdx,onTitleDown,onFocus,section }: FileViewProps) {
   );
 }
 
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  appliedToSection?: string;
+}
+
+interface PRDChatProps {
+  pos: { x: number; y: number }; zIdx: number;
+  onTitleDown: (e: RMouseEvent<HTMLDivElement>) => void; onFocus: () => void;
+  messages: ChatMessage[];
+  input: string; setInput: (v: string) => void;
+  onSend: () => void; busy: boolean;
+  sections: PRDSection[];
+}
+
+function PRDChat({ pos,zIdx,onTitleDown,onFocus,messages,input,setInput,onSend,busy,sections }: PRDChatProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [messages]);
+
+  return (
+    <Win title="PRD.CHAT" bg={DARK} w={420} pos={pos} zIdx={zIdx}
+      onTitleDown={onTitleDown} onFocus={onFocus}
+      badge={sections.length ? `${sections.length} SECTIONS` : undefined}>
+      <div style={{ fontFamily:F }}>
+
+        {/* section quick-ref bar */}
+        <div style={{ padding:'4px 10px', borderBottom:`1px solid ${BD}`,
+          display:'flex', gap:4, flexWrap:'wrap', background:'rgba(0,0,0,0.25)' }}>
+          {sections.slice(0,5).map(s => (
+            <span key={s.filename}
+              onClick={() => setInput(`Expand the "${s.title}" section with more detail.`)}
+              style={{ fontSize:8, padding:'1px 6px', cursor:'pointer',
+                border:`1px solid ${BD}`, background:'rgba(255,255,255,0.03)',
+                color:DIM, letterSpacing:.5, whiteSpace:'nowrap' }}>
+              {s.title}
+            </span>
+          ))}
+          {sections.length > 5 && (
+            <span style={{ fontSize:8, color:DIM }}>+{sections.length - 5} more</span>
+          )}
+        </div>
+
+        {/* message history */}
+        <div ref={scrollRef} style={{ padding:'10px 12px', height:240,
+          overflowY:'auto', display:'flex', flexDirection:'column', gap:8 }}>
+          {messages.length === 0 && (
+            <div style={{ fontSize:10, color:DIM, lineHeight:1.6 }}>
+              PRD loaded into context. Ask me to:<br/>
+              <span style={{ color:'#50708A' }}>· "Expand the Architecture Notes section"</span><br/>
+              <span style={{ color:'#50708A' }}>· "Add a caching strategy to Technical Requirements"</span><br/>
+              <span style={{ color:'#50708A' }}>· "Rewrite User Stories for a solo developer"</span><br/>
+              <span style={{ color:'#50708A' }}>· "Add error handling patterns for circuit_breaker"</span>
+            </div>
+          )}
+          {messages.map((msg, i) => (
+            <div key={i} style={{
+              alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+              maxWidth: '88%',
+            }}>
+              <div style={{
+                fontSize:11, lineHeight:1.65, padding:'6px 10px',
+                background: msg.role === 'user' ? '#1A3A60' : 'rgba(255,255,255,0.04)',
+                border: `1px solid ${msg.role === 'user' ? '#204888' : BD}`,
+                color: msg.role === 'user' ? '#90C0F0' : TD,
+                whiteSpace:'pre-wrap', wordBreak:'break-word',
+              }}>
+                {msg.content.replace(/^APPLY_TO:.*\n/, '✓ Applied → ')}
+              </div>
+              {msg.appliedToSection && (
+                <div style={{ fontSize:8, color:'#50A060', marginTop:2, paddingLeft:4, letterSpacing:.5 }}>
+                  ✓ APPLIED TO {msg.appliedToSection}
+                </div>
+              )}
+            </div>
+          ))}
+          {busy && (
+            <div style={{ alignSelf:'flex-start', fontSize:11, color:DIM }}>
+              <span style={{ color:'#3060A8' }}>▋</span> thinking…
+            </div>
+          )}
+        </div>
+
+        {/* input row */}
+        <div style={{ padding:'8px 10px', borderTop:`1px solid ${BD}`,
+          display:'flex', gap:6, background:'rgba(0,0,0,0.2)' }}>
+          <textarea
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onSend(); } }}
+            placeholder="Ask about the PRD… (Enter to send, Shift+Enter for newline)"
+            rows={2}
+            style={{ flex:1, background:'rgba(255,255,255,0.04)', border:`1px solid ${BD}`,
+              fontFamily:F, fontSize:10, color:TD, padding:'5px 8px',
+              outline:'none', resize:'none', lineHeight:1.5 }}
+          />
+          <button onClick={onSend} disabled={busy || !input.trim()}
+            style={{ fontFamily:F, fontSize:10, padding:'0 12px',
+              background: busy || !input.trim() ? '#1A1A14' : BAR,
+              color:'#fff', border:'none', cursor: busy||!input.trim() ? 'not-allowed' : 'pointer',
+              opacity: busy || !input.trim() ? 0.5 : 1, letterSpacing:1, alignSelf:'stretch' }}>
+            {busy ? '…' : '→'}
+          </button>
+        </div>
+      </div>
+    </Win>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // MAIN DESKTOP
 // ─────────────────────────────────────────────────────────────────────────────
@@ -495,13 +605,19 @@ export default function SRLDesktop() {
 
   // ── Window positions + z ──────────────────────────────────────────────────
   const [wins, setWins] = useState<Record<string, WinState>>({
-    prompt:   { x:20,  y:48, z:1 },
-    kit:      { x:440, y:48, z:2 },
-    ctrl:     { x:440, y:390,z:3 },
-    provider: { x:710, y:48, z:4 },
-    output:   { x:20,  y:390,z:5 },
-    folder:   { x:80,  y:75, z:6 },
-    preview:  { x:120, y:105,z:7 },
+    // Column A — Config (x=14)
+    provider: { x:14,  y:6,  z:1 },   // PROVIDER.CFG  w=290
+    ctrl:     { x:14,  y:290,z:2 },   // SRL.CONTROLLER w=255
+
+    // Column B — Input (x=318)
+    prompt:   { x:318, y:6,  z:3 },   // PROMPT.NOTE   w=400
+    kit:      { x:318, y:310,z:4 },   // CK ──SEM      w=360
+
+    // Column C — Output (x=730)
+    output:   { x:730, y:6,  z:5 },   // PRD.OUTPUT    w=420
+    folder:   { x:730, y:290,z:6 },   // PRD.DIR       w=330
+    chat:     { x:730, y:6,  z:7 },   // PRD.CHAT      w=420 (hidden until generation)
+    preview:  { x:200, y:80, z:8 },   // FILE.VIEW     w=400 (floats center on open)
   });
   const maxZ = useRef(7);
   const drag = useRef<{ id: string; ox: number; oy: number } | null>(null);
@@ -509,6 +625,7 @@ export default function SRLDesktop() {
   const [showOutput,  setShowOutput]  = useState(false);
   const [showFolder,  setShowFolder]  = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [showChat,    setShowChat]    = useState(false);
 
   // ── Generation state ──────────────────────────────────────────────────────
   const [prompt,        setPrompt]        = useState('');
@@ -521,6 +638,11 @@ export default function SRLDesktop() {
   const [generating,    setGenerating]    = useState(false);
   const [sections,      setSections]      = useState<PRDSection[]>([]);
   const [activeFile,    setActiveFile]    = useState<PRDSection | null>(null);
+
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput,    setChatInput]    = useState('');
+  const [chatBusy,     setChatBusy]     = useState(false);
+  const [colCTab,      setColCTab]      = useState<'output' | 'chat'>('output');
 
   // ── Drag handlers ─────────────────────────────────────────────────────────
   const focusWin = useCallback((id: string) => {
@@ -558,6 +680,92 @@ CONTEXT: Scope=${scope === 'new' ? 'Greenfield' : 'Extension'} · Field=${select
 ${selectedKit ? `Kit=${selectedKit.name} · Stack=${selectedKit.stack.join(', ')}` : ''}
 ${selectedStack.length ? `Additional=${selectedStack.join(', ')}` : ''}
 CONSTRAINTS: Ruby-native only. Prefer async/falcon. Prefer dspy.rb typed signatures. Cite specific gems.`;
+  };
+
+  const sendChatMessage = async () => {
+    if (!chatInput.trim() || chatBusy) return;
+    const userMsg: ChatMessage = { role: 'user', content: chatInput };
+    setChatMessages(prev => [...prev, userMsg]);
+    setChatInput('');
+    setChatBusy(true);
+
+    const provider = providers[providerId];
+    const apiKey   = (apiKeys[providerId] || '').trim();
+
+    if (!apiKey && provider.id !== 'ollama') {
+      setChatMessages(prev => [...prev, { role: 'assistant', content: `ERROR · Missing API key for ${provider.name}. Please configure it in PROVIDER.CFG window.` }]);
+      setChatBusy(false);
+      return;
+    }
+
+    const prdContext = sections.map(s => `## ${s.title}\n${s.body}`).join('\n\n');
+    const history    = chatMessages.map(m =>
+      `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`
+    ).join('\n');
+
+    const system = `You are a technical editor for a Ruby AI PRD document.
+The current PRD content is provided below. Help the user refine, expand, or correct it.
+
+When the user asks to rewrite or update a specific section, output ONLY that section's
+new content prefixed with the exact line: APPLY_TO: <filename>
+where <filename> matches one of the section filenames exactly.
+
+Example:
+APPLY_TO: 02_technical_requirements.md
+## Technical Requirements
+[new content here]
+
+If no section update is needed, respond conversationally.
+
+Available sections:
+${sections.map(s => `  ${s.filename} — ${s.title}`).join('\n')}
+
+Current PRD:
+${prdContext}
+
+Conversation so far:
+${history}`;
+
+    try {
+      let full = '';
+      const stream = provider.stream({ system, user: chatInput }, apiKey, modelId);
+      const assistantMsg: ChatMessage = { role: 'assistant', content: '' };
+      setChatMessages(prev => [...prev, assistantMsg]);
+
+      for await (const chunk of stream) {
+        full += chunk;
+        setChatMessages(prev => {
+          const updated = [...prev];
+          updated[updated.length - 1] = { role: 'assistant', content: full };
+          return updated;
+        });
+      }
+
+      // Auto-detect APPLY_TO directive and update section in PRD.DIR
+      const applyMatch = full.match(/^APPLY_TO:\s*(.+\.md)\n([\s\S]+)/m);
+      if (applyMatch) {
+        const [, filename, newBody] = applyMatch;
+        setSections(prev => prev.map(s =>
+          s.filename === filename.trim()
+            ? { ...s, body: newBody.trim(), bytes: new TextEncoder().encode(newBody.trim()).length }
+            : s
+        ));
+        setChatMessages(prev => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            ...updated[updated.length - 1],
+            appliedToSection: filename.trim(),
+          };
+          return updated;
+        });
+      }
+    } catch (e) {
+      setChatMessages(prev => [...prev,
+        { role: 'assistant', content: `ERROR · ${(e as Error).message}` }
+      ]);
+    } finally {
+      setChatBusy(false);
+    }
   };
 
   // ── Generate ──────────────────────────────────────────────────────────────
@@ -607,6 +815,10 @@ CONSTRAINTS: Ruby-native only. Prefer async/falcon. Prefer dspy.rb typed signatu
           await storeSection(db, { session_id: sessionId, title: sec.title, body: sec.body, embedding });
         }
       }
+      setShowChat(true);
+      setChatMessages([]);
+      setColCTab('chat');
+      focusWin('chat');
     } catch (e) {
       setOutputText(`ERROR · ${(e as Error).message}`);
       setGenerating(false);
@@ -704,9 +916,42 @@ CONSTRAINTS: Ruby-native only. Prefer async/falcon. Prefer dspy.rb typed signatu
 
         <ProviderCfg pos={wins.provider} zIdx={wins.provider.z} onTitleDown={e => onTitleDown('provider', e)} onFocus={() => focusWin('provider')} />
 
+        {(showOutput || showChat) && (
+          <div style={{
+            position:'absolute', left: wins.output.x, top: wins.output.y - 22,
+            zIndex: Math.max(wins.output.z, wins.chat.z) + 1,
+            display:'flex', gap:0, fontFamily:F,
+          }}>
+            {['output','chat'].map(tab => (
+              <button key={tab} onClick={() => {
+                setColCTab(tab as 'output' | 'chat');
+                focusWin(tab === 'output' ? 'output' : 'chat');
+              }} style={{
+                fontSize:9, padding:'3px 12px', letterSpacing:1.5,
+                background: colCTab === tab ? BAR : 'rgba(0,0,0,0.4)',
+                color: colCTab === tab ? '#fff' : DIM,
+                border: `1px solid ${colCTab === tab ? BAR : BD}`,
+                cursor:'pointer', textTransform:'uppercase' as const,
+              }}>{tab === 'output' ? 'PRD.OUTPUT' : 'PRD.CHAT'}</button>
+            ))}
+          </div>
+        )}
+
         {showOutput && (
           <OutputWin pos={wins.output} zIdx={wins.output.z} onTitleDown={e => onTitleDown('output', e)} onFocus={() => focusWin('output')}
             text={outputText} generating={generating} mode={mode} selectedKit={selectedKit} />
+        )}
+
+        {showChat && sections.length > 0 && (
+          <PRDChat
+            pos={wins.chat} zIdx={wins.chat.z}
+            onTitleDown={e => onTitleDown('chat', e)}
+            onFocus={() => focusWin('chat')}
+            messages={chatMessages}
+            input={chatInput} setInput={setChatInput}
+            onSend={sendChatMessage} busy={chatBusy}
+            sections={sections}
+          />
         )}
 
         {showFolder && sections.length > 0 && (
