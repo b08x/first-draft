@@ -640,7 +640,7 @@ function VaultWin({ pos,zIdx,onTitleDown,onFocus,onMinimize,onMaximize,onClose,m
     if (!db) return;
     db.query('SELECT * FROM session_meta ORDER BY created_at DESC').then(res => {
       setSessions(res.rows);
-      if (res.rows.length > 0 && !activeSession) setActiveSession(res.rows[0].session_id as string);
+      if (res.rows.length > 0 && !activeSession) setActiveSession((res.rows[0] as any).session_id as string);
     });
   }, [db]);
 
@@ -739,7 +739,7 @@ function InspectorWin({ pos,zIdx,onTitleDown,onFocus,onMinimize,onMaximize,onClo
 // ─────────────────────────────────────────────────────────────────────────────
 // MAIN DESKTOP
 // ─────────────────────────────────────────────────────────────────────────────
-interface WinState { x: number; y: number; z: number; open: boolean; minimized: boolean; w?: number; h?: number; }
+interface WinState { x: number; y: number; z: number; open: boolean; minimized: boolean; maximized?: boolean; w?: number; h?: number; }
 
 export default function SRLDesktop() {
   const { providerId, modelId, apiKeys } = useSettings();
@@ -1089,7 +1089,7 @@ ${history}`;
     { id: 'vault', label: 'Vault', icon: '🗄' },
   ];
 
-  type MenuItem = { label: string; action?: () => void; divider?: boolean };
+  type MenuItem = { label?: string; action?: () => void; divider?: boolean };
   const MENUS: Record<string, MenuItem[]> = {
     File: [
       { label: 'New Session' },

@@ -106,7 +106,8 @@ export const openrouterProvider: ModelProvider = {
   name: 'OpenRouter',
   supportsDirectBrowser: true,
   models: [
-    'google/gemini-2.0-flash-001',
+    'google/gemini-2.5-flash',
+    'google/gemini-2.5-pro',
     'meta-llama/llama-3.3-70b-instruct',
     'anthropic/claude-3.5-sonnet',
     'mistralai/mistral-large',
